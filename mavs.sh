@@ -28,11 +28,24 @@ UWhite='\033[4;37m'       # White
 
 scriptVersion='1.0'
 
+banner='
+                                   ╓
+                        ╕         ╒╣╕                     ╣╣╣─    ╦╣╣
+                ╓      ║╬         ╣╣╣      ╒             ╣╣╣─  ╒╣╣╩╙╣╬║╣
+                ╣╕     ╣╣        ╫╣ ╫╣     ╡  ╔         ╣╣╣   ╦╣╩   ║╣╬
+               ╣╣╣    ║╣╣╬      ╔╣╩  ╫╣╖  ╞╬  ╣╣       ╣╣╣   ╣╣╬    ╞╩
+             ╒╣╣╩╣╣╖ ╔╣╬╣╣╕    ╔╣╣╗╗╦╦╣╣╦╦╣╣  ╣╣╣     ╣╣╣     ╙╣╣╣╦╗╖
+            ╔╣╣╜  ╝╣╣╣╜ ╙╣╣═╩╜║╣╣╜     ╫╣╖     ╣╣╣  ╒╣╣╣          ╠╜╝╣╣╣╣╗╖
+          ╓╣╣╩           ╚╣╣ ╦╣╬        ╚╣╗     ╣╣╬╓╣╣╬      ╓╦╣╣╣╩      ╙╙╝╣╣╣╗╖
+        ╒╣╣╬╗╗╗           ╚╣╣╖           ╙╣╣╗   ╙╣╣╣╣╩    ╓╣╣╩╙ ║╣             ╙╣╣╣╖
+      ╓╣╣╝╜╙╙╙             ╚╣╣╖╦           ╙╝╣╗╖ ╫╣╣╩    ├╣╣╖    ╬           ╓╓╗╣╣╣╩
+                       ╣╣╣╣╣╣╣╣╣╖           ╓╣╣╣╣╣╣╩      ╙╙╝╣╣╣╣╣╣╣╣╣╣╣╣╣╣╣╝╝╜╙╙
+                             └╙╙╨╝╝╝╝╝╝╝╝╝╨╜╜╙╙╙
+'
 # code from: https://natelandau.com/boilerplate-shell-script-template/
-# Print usage
 
 usage() {
-  echo -e "
+  echo -e "${banner}
 Please pass a APK file for scanning through either -f or --file 
 Usage: $0 [OPTIONS]
 
@@ -70,6 +83,7 @@ else
 						echo -ne "\t${BRed}Vulnerable ${Color_Off}"
 						echo "ALLOW_ALL_HOSTNAME_VERIFIER found! :-> ${location}"
 					fi
+
 					echo -n " Checking SSL Pinning (Hostname Verification): "
 					location="$(zipgrep -al canAuthenticateAgainstProtectionSpace apk.jar 2>&1)"
 					if [ -z "$location" ]; then
@@ -77,6 +91,19 @@ else
 					else
 						echo -ne "\t${BRed}Vulnerable ${Color_Off}"
 						echo "canAuthenticateAgainstProtectionSpace found! :-> ${location}"
+					fi
+
+				# Check if application logs stuff
+
+				echo -n " Checking app for logging (Log.e calls): "
+					location="$(zipgrep -al Log.e apk.jar 2>&1)"
+					if [ -z "$location" ]; then
+						echo -e "\t${Green}No calls to Log.e found${Color_Off}"
+					else
+						echo -ne "\t${BRed}Vulnerable ${Color_Off}"
+						echo -e "Log.e found! :-> check logs"
+						#echo -e " Verify Commands: \n\t${Cyan}adb logcat${Collor_Off}"
+						#echo "Log.e found! :-> ${location}" # list all affected files
 					fi
 
 			rm apk.jar	# clean up jar file
