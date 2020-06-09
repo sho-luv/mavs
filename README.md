@@ -48,3 +48,10 @@ Usage: ../../../mydev/mavs/mavs.sh [OPTIONS]
 ## Example Output
 <img width="1035" alt="Screen Shot 2020-05-28 at 1 17 24 AM" src="https://user-images.githubusercontent.com/1679089/83118103-c46ea680-a082-11ea-9a0c-0d2d35617f20.png">
 
+## Current Security Checks
+
+1. Insufficient Certificate Validation -- partial check
+2. Application logging
+3. Backups Allowed
+4. Debugging Enabled
+
