@@ -60,7 +60,7 @@ Usage: mavs.sh [OPTIONS]
 
 ```
 ## Example Output
-<img width="1035" alt="Screen Shot 2020-05-28 at 1 17 24 AM" src="https://user-images.githubusercontent.com/1679089/83118103-c46ea680-a082-11ea-9a0c-0d2d35617f20.png">
+<img width="1035" alt="Screen Shot 2020-05-28 at 1 17 24 AM" src="https://user-images.githubusercontent.com/1679089/84467716-ccf1e000-ac31-11ea-9dd9-47a059dc4e33.gif">
 
 ## Current Security Checks
 
