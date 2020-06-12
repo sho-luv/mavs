@@ -25,6 +25,7 @@ BWhite='\033[1;37m'       # White
 
 # Underline
 UWhite='\033[4;37m'       # White
+
 ANSWER='\t\t\t\t\t'	  # Tab for answers
 EXPLOIT=""
 VERBOSE=""
@@ -105,43 +106,41 @@ if [ -f "$APK" ]; then
 	echo -e " Package Name: \t${BWhite}${info[6]}${Off}"
 	echo -e " Version Name: \t${BWhite}${info[9]}${Off}"
 	echo -e " Version Code: \t${BWhite}${info[12]}${Off}"
-	echo -e " # Vuln Checks: ${BWhite}4${Off}"
+	echo -e " Vuln Check #: \t${BWhite}5${Off}"
 
 	echo -e "\n${UWhite} Checking JAR File Misconfigurations ${Off}\n"
 	d2j-dex2jar $APK -o apk.jar > /dev/null 2>&1	# create jar file from apk
 
-		# Check is SSL is broken 
+		######################
+		# Check Cert Pinning #
+		######################
 
 			echo -e " ${UWhite}Insufficient Certificate Validation${Off}\n"
 			check1="$(zipgrep -al ALLOW_ALL_HOSTNAME_VERIFIER apk.jar 2>&1)"
 			check2="$(zipgrep -al canAuthenticateAgainstProtectionSpace apk.jar 2>&1)"
-			if [ -z "$check1" ]||[ -z "$check2" ]; then
-				echo -ne " Check ${BWhite}Hostname Verified:${Off} "
-				if [ -z "$check1" ]; then
-					#echo -e "\t\t${Green}ALLOW_ALL_HOSTNAME_VERIFIER not found! Manual testing needed.${Off}"
-					echo -e "\t\t${BGreen}Not vulnerable${Off}"
-				else
-					echo -e "\t\t${BRed}Vulnerable ${VERBOSE}${Off}"
-					if [ -n "$VERBOSE" ]; then
-						echo -e "ALLOW_ALL_HOSTNAME_VERIFIER found! :-> ${check1}"
-					fi
+			echo -ne " Check ${BWhite}Hostname Verified${Off}: "
+			if [ -z "$check1" ]; then
+				echo -e "\t\t${BGreen}Not vulnerable${Off}"
+			else
+				echo -e "\t\t${BRed}Vulnerable ${Off}"
+				if [ -n "$VERBOSE" ]; then
+					echo -e "ALLOW_ALL_HOSTNAME_VERIFIER found:\n${check1}"
 				fi
-				echo -ne " Check ${BWhite}auth in protected space:${Off} "
-				if [ -z "$check2" ]; then
-					if [ -n "$VERBOSE" ]; then
-						echo -e "\t${Yellow}canAuthenticateAgainstProtectionSpace not found! Manual testing needed.${Off}"
-					else
-						echo -e "\t${BGreen}Not vulnerable${Off}"
-					fi
-				else
-					echo -e "\t${BRed}Vulnerable ${Off}"
-					if [ -n "$VERBOSE" ]; then 
-						echo "canAuthenticateAgainstProtectionSpace found! :-> ${check2}"
-					fi
-				fi
+			fi
 
-			# Show how to exploit SSL Pinning
-				if [ -n "$EXPLOIT" ]; then
+			echo -ne " Check ${BWhite}auth in protected space${Off}: "
+			if [ -z "$check2" ]; then
+				echo -e "\t${BGreen}Not vulnerable${Off}\n"
+			else
+				echo -e "\t${BRed}Vulnerable ${Off}\n"
+				if [ -n "$VERBOSE" ]; then 
+					echo "canAuthenticateAgainstProtectionSpace found:\n${check2}"
+				fi
+			fi
+
+			# Show how to exploit Cert Pinning
+			if [ -n "$EXPLOIT" ]; then
+				if [ -n "$check1" ]||[ -n "$check2" ]; then
 					echo -en " ${BYellow}[+] Exploit Cert Not Validated:${Off}"
 					echo -e "\tInstall any valid certificat on device and attempt to capture "
 					echo -e "${ANSWER}application traffic. This can be done with a self signed certificate"
@@ -152,20 +151,36 @@ if [ -f "$APK" ]; then
 				fi
 			fi
 
+		###################################
+		# Check if application logs stuff #
+		###################################
 
-		# Check if application logs stuff
-
-		echo -ne " Checking ${BWhite}Logging Enabled${Off}(Log.e calls): "
-			location="$(zipgrep -al Log.e apk.jar 2>&1)"
-			if [ -z "$location" ]; then
-				echo -e "\t${BGreen}No calls to Log.e found${Off}"
+			echo -e " ${UWhite}Checking Logging Enabled${Off}\n"
+			check1="$(zipgrep -ali Log.e apk.jar 2>&1)"
+			check2="$(zipgrep -ali logger apk.jar 2>&1)"
+			echo -ne " Check ${BWhite}Logging Enabled${Off} (Log.e calls): "
+			if [ -z "$check1" ]; then
+				echo -e "\t${BGreen}Not vulnerable${Off}"
 			else
-				echo -e "${BRed}Vulnerable ${Off}"
+				echo -e "\t${BRed}Vulnerable ${Off}"
 				if [ -n "$VERBOSE" ]; then
-					echo -e "\n${BWhite}Found Log.e in following files:${Off}\n${location}"
+					echo -e "\n${BWhite}Found Log.e in following files:${Off}\n${check1}"
 				fi
+			fi
+			echo -ne " Check ${BWhite}Logging Enabled${Off} (Logger calls): "
+			if [ -z "$check2" ]; then
+				echo -e "\t${BGreen}Not vulnerable${Off}"
+			else
+				echo -e "\t${BRed}Vulnerable ${Off}"
+				if [ -n "$VERBOSE" ]; then
+					echo -e "\n${BWhite}Found logger in following files:${Off}\n${check1}"
+				fi
+			fi
+
 			# Show how to exploit logging
-				if [ -n "$EXPLOIT" ]; then
+
+			if [ -n "$EXPLOIT" ]; then
+				if [ -n "$check1" ]||[ -n "$check2" ]; then
 					echo -en " ${BYellow}[+] Exploit Logging Enabled:${Off}"
 					echo -e "\t\tLogging can be examined with logcat. This traffic can be captured and"
 					echo -e "${ANSWER}examined or paresed while being captured. As an examples:"
@@ -175,35 +190,69 @@ if [ -f "$APK" ]; then
 				fi
 			fi
 
+		######################################
+		# Check application snapshot allowed #
+		######################################
+
+			echo -ne "\n Check ${BWhite}Snapshots Allowed${Off}: "
+			check="$(zipgrep -ali excludeFromRecents=\"true\" apk.jar 2>&1)"
+			if [ -n "$check" ]; then
+				echo -e "\t\t${BGreen}Not vulnerable${Off}"
+			else
+				echo -e "\t\t${BRed}Vulnerable ${Off}"
+				if [ -n "$VERBOSE" ]; then
+					echo -e "${Yellow}excludeFromRecents=\"true\" not found! (Needed to prevent snapshots) ${Off}"
+				fi
+
+				# Show how to exploit logging
+
+				if [ -n "$EXPLOIT" ]; then
+					echo -en " ${BYellow}[+] Exploit Snapshots Enabled:${Off}"
+					echo -e "\t\tRoot access to the device is needed to obtain Snapshots"
+					echo -e "${ANSWER}Note: Root access required to access Snapshots"
+					echo -e "${ANSWER}Open the application to a screen with sensitive info"
+					echo -e "${ANSWER}then change to another app or the homescreen. A snapshot"
+					echo -e "${ANSWER}will have been created. Commands to access images:"
+					#echo -e "${ANSWER}${BCyan}adb shell \"su -c 'cp -r /data/system/recent_images /sdcard/'\" && adb pull /sdcard/recent_images && adb shell \"su -c 'rm -r /sdcard/recent_images'\"${Off}"
+					echo -e "${ANSWER}${BCyan}adb shell \"su -c 'cp -r /data/system/recent_images /sdcard/'\"${Off}"
+					echo -e "${ANSWER}${BCyan}adb pull /sdcard/recent_images${Off}" 
+					echo -e "${ANSWER}${BCyan}adb shell \"su -c 'rm -r /sdcard/recent_images'\"${Off}"
+				fi
+			fi
+
 	rm apk.jar	# clean up jar file
 
 	echo -e "\n${UWhite} Checking androidManifest.xml For Misconfigurations ${Off}\n"
 	# decompile apk file to examin androidManifest.xml file
 	apktool d $APK -f -o apk > /dev/null 2>&1
 
-		# Check if app allows backups.
+		###############################
+		# Check if app allows backups #
+		###############################
 
-			echo -ne " Checking ${BWhite}Backups Allowed:${Off} "
-			debug="$(grep 'android:allowBackup="false"' apk/AndroidManifest.xml)"
-			if [ -z "$debug" ]; then 	# true if string is empty
-				if [ -n "$VERBOSE" ]; then
-					echo -ne "\t\t${BRed}Vulnerable ${Off}"
-					debug2="$(grep 'android:allowBackup="true"' apk/AndroidManifest.xml)"
-					if [ -n "$debug2" ]; then
-						echo "android:allowBackup=\"true\" found! :-> in apk/AndroidManifest.xml"
+			echo -ne " Checking ${BWhite}Backups Allowed${Off}: "
+			backup="$(grep 'android:allowBackup="false"' apk/AndroidManifest.xml)"
+			if [ -z "$backup" ]; then 	# true if string is empty
+				echo -ne "\t\t${BRed}Vulnerable ${Off}"
+				if [ -n "$VERBOSE" ]; then 	# true if string not empty
+					backup2="$(grep 'android:allowBackup="true"' apk/AndroidManifest.xml)"
+					if [ -n "$backup2" ]; then
+						echo "android:allowBackup=\"true\" found in apk/AndroidManifest.xml"
 					else
 						echo "android:allowBackup=\"false\" not explicitly set to prevent backups"
 					fi
 				else
-					echo -e "\t\t${BRed}Vulnerable${Off} "
+					echo ""
 				fi
+
 				# Show how to exploit logging
+
 				if [ -n "$EXPLOIT" ]; then
-					echo -en " ${BYellow}[+] Exploit Backups Allowed:${Off}"
+					echo -en "\n ${BYellow}[+] Exploit Backups Allowed:${Off}"
 					echo -e "\t\tIf backups are allowed it is possible to make a backup without"
-					echo -e "${ANSWER}rooting the phone. This means any user can make a backup and view files"
-					echo -e "${ANSWER}Commands to run:"
-					echo -e "${ANSWER}${BCyan}adb backup ${info[6]}${Off}"
+					echo -e "${ANSWER}rooting the device. This means any user can make a backup and view files"
+					echo -e "${ANSWER}adb used to create backup, then printf to extract backup. Commands to run:"
+					echo -e "${ANSWER}${BCyan}adb backup ${info[6]}${White} -then-${Off}"
 					command='( printf "\\x1f\\x8b\\x08\\x00\\x00\\x00\\x00\\x00" ; tail -c +25 backup.ab ) |  tar xfvz -'
 					echo -e "${ANSWER}${BCyan}${command}${Off}\n"
 				fi
@@ -211,52 +260,33 @@ if [ -f "$APK" ]; then
 				echo -e "\t\t${BGreen}Not vulnerable${Off}"
 			fi
 
-: <<'END'	
-		# Check if app allows auto backups.
+		#################################
+		# Check if app allows debugging #
+		#################################
 
-			echo -ne " Checking ${BWhite}Auto Backups Allowed:${Off} "
-			backup="$(grep 'android:fullBackupOnly="true"' apk/AndroidManifest.xml)"
-			if [ -n "$backup" ]; then
-				echo -e "\t${BRed}Vulnerable ${Off}"
-				echo "android:fullBackupOnly=\"true\" found! :-> in apk/AndroidManifest.xml"
-			else
-				echo -e "\t${Green}Not vulnerable${Off}"
-			fi
-
-		# Check if app allows Key/Value backups.
-
-			echo -ne " Checking ${BWhite}Key/Value Backups Allowed:${Off} "
-			backup="$(grep 'android:backupAgent="true"' apk/AndroidManifest.xml)"
-			if [ -n "$backup" ]; then
-				echo -e "\t${BRed}Vulnerable ${Off}"
-				echo "android:backupAgent=\"true\" found! :-> in apk/AndroidManifest.xml"
-			else
-				echo -e "\t${Green}Not vulnerable${Off}"
-			fi
-END
-		# Check if app allows debugging.
-
-			echo -ne " Checking ${BWhite}Debugging Enabled:${Off} "
+			echo -ne " Checking ${BWhite}Debugging Enabled${Off}: "
 			debug="$(grep 'android:debuggable="true"' apk/AndroidManifest.xml)"
 			if [ -n "$debug" ]; then
+				echo -en "\t\t${BRed}Vulnerable${Off} "
 				if [ -n "$VERBOSE" ]; then 
-					echo -ne "\t\t${BRed}Vulnerable${Off} "
 					echo -e "android:debuggable=\"true\" found in apk/AndroidManifest.xml"
 				else
-					echo -e "\t\t${BRed}Vulnerable${Off} "
+					echo ""
 				fi
+
 				# Show how to exploit logging
+
 				if [ -n "$EXPLOIT" ]; then
-					echo -en " ${BYellow}[+] Exploit Debugging Enable:${Off}"
+					echo -en "\n ${BYellow}[+] Exploit Debugging Enable:${Off}"
 					echo -e "\t\tIf debugging is enabled, it is possible to login as the application"
-					echo -e "${ANSWER}and access the applications directory/files. Command to run"
-					echo -e "${ANSWER}${BCyan}adb shell run-as ${info[6]}${Off}"
+					echo -e "${ANSWER}and access the applications directory/files. Example commands to run"
+					echo -e "${ANSWER}${BCyan}adb shell run-as ${info[6]}${White} -or-${Off}"
 					# check which one of these works...
-					echo -e "${ANSWER}${BCyan}adb shell run-as ${info[6]} tar c ./ > debug.tar${Off}"
+					echo -e "${ANSWER}${BCyan}adb shell run-as ${info[6]} tar c ./ > debug.tar${White} -or-${Off}"
 					echo -e "${ANSWER}${BCyan}adb shell exec-out run-as ${info[6]} tar c databases/ > databases.tar${Off}"
 				fi
 			else
-				echo -e "\t\t${BGreen}Not vulnerabled${Off}"
+				echo -e "\t\t${BGreen}Not vulnerable${Off}"
 			fi
 
 	echo ""

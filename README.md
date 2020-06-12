@@ -51,7 +51,7 @@ Usage: ../../../mydev/mavs/mavs.sh [OPTIONS]
 ## Current Security Checks
 
 1. Insufficient Certificate Validation -- partial check
-2. Application logging
+2. Application Logging
 3. Backups Allowed
 4. Debugging Enabled
-
+5. Snapshot Allowed
