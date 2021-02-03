@@ -215,8 +215,7 @@ if [ -f "$APK" ]; then
 
 				if [ -n "$EXPLOIT" ]; then
 					echo -en " ${BYellow}[+] Exploit Snapshots Enabled:${Off}"
-					#echo -e "\t\tRoot access to the device is needed to obtain Snapshots"
-					echo -e "${ANSWER}Note: Root access required to access Snapshots"
+					echo -e "\t\tNote: Root access required to access Snapshots"
 					echo -e "${ANSWER}Open the application to a screen with sensitive info"
 					echo -e "${ANSWER}then change to another app or the homescreen. A snapshot"
 					echo -e "${ANSWER}will have been created. Verify image is not blank"
