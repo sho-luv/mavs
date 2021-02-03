@@ -100,7 +100,7 @@ fi
 
 if [ -f "$APK" ]; then 
   	echo -e "${banner}"
-	info=$(apkinfo affirm.apk 2> /dev/null | awk -F': ' '{print $2}')
+	info=$(apkinfo $APK 2> /dev/null | awk -F': ' '{print $2}')
     IFS=$'\n' info=(${info})
 	echo -e " App Name: \t${BWhite}${info[1]}${Off}"
 	echo -e " APK File: \t${BWhite}${info[0]}${Off}"
