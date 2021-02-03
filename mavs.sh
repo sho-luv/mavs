@@ -100,12 +100,13 @@ fi
 
 if [ -f "$APK" ]; then 
   	echo -e "${banner}"
-	info=($(apkinfo $APK 2> /dev/null))
-	echo -e " App Name: \t${BWhite}${info[4]}${Off}"
-	echo -e " APK File: \t${BWhite}${info[1]}${Off}"
-	echo -e " Package Name: \t${BWhite}${info[6]}${Off}"
-	echo -e " Version Name: \t${BWhite}${info[9]}${Off}"
-	echo -e " Version Code: \t${BWhite}${info[12]}${Off}"
+	info=$(apkinfo affirm.apk 2> /dev/null | awk -F': ' '{print $2}')
+    IFS=$'\n' info=(${info})
+	echo -e " App Name: \t${BWhite}${info[1]}${Off}"
+	echo -e " APK File: \t${BWhite}${info[0]}${Off}"
+	echo -e " Package Name: \t${BWhite}${info[2]}${Off}"
+	echo -e " Version Name: \t${BWhite}${info[3]}${Off}"
+	echo -e " Version Code: \t${BWhite}${info[4]}${Off}"
 	echo -e " Vuln Check #: \t${BWhite}5${Off}"
 
 	echo -e "\n${UWhite} Checking JAR File Misconfigurations ${Off}\n"
@@ -194,6 +195,12 @@ if [ -f "$APK" ]; then
 		# Check application snapshot allowed #
 		######################################
 
+		# notes:
+			# prevent screen shots with: FLAG_SECURE
+			# https://wwws.nightwatchcybersecurity.com/2016/04/13/research-securing-android-applications-from-screen-capture/
+			# prevent snapshots with excludeFromRecents
+			# onPause() function called just before app goes into background
+
 			echo -ne "\n Check ${BWhite}Snapshots Allowed${Off}: "
 			check="$(zipgrep -ali excludeFromRecents=\"true\" apk.jar 2>&1)"
 			if [ -n "$check" ]; then
@@ -208,13 +215,16 @@ if [ -f "$APK" ]; then
 
 				if [ -n "$EXPLOIT" ]; then
 					echo -en " ${BYellow}[+] Exploit Snapshots Enabled:${Off}"
-					echo -e "\t\tRoot access to the device is needed to obtain Snapshots"
+					#echo -e "\t\tRoot access to the device is needed to obtain Snapshots"
 					echo -e "${ANSWER}Note: Root access required to access Snapshots"
 					echo -e "${ANSWER}Open the application to a screen with sensitive info"
 					echo -e "${ANSWER}then change to another app or the homescreen. A snapshot"
-					echo -e "${ANSWER}will have been created. Commands to access images:"
+					echo -e "${ANSWER}will have been created. Verify image is not blank"
+					echo -e "${ANSWER}by accessing it. Commands to access images:"
 					#echo -e "${ANSWER}${BCyan}adb shell \"su -c 'cp -r /data/system/recent_images /sdcard/'\" && adb pull /sdcard/recent_images && adb shell \"su -c 'rm -r /sdcard/recent_images'\"${Off}"
 					echo -e "${ANSWER}${BCyan}adb shell \"su -c 'cp -r /data/system/recent_images /sdcard/'\"${Off}"
+					echo -e "${ANSWER}${BCyan} or "
+					echo -e "${ANSWER}${BCyan}adb shell \"su -c 'cp -r /data/system_ce/0/snapshots /sdcard/'\"${Off}"
 					echo -e "${ANSWER}${BCyan}adb pull /sdcard/recent_images${Off}" 
 					echo -e "${ANSWER}${BCyan}adb shell \"su -c 'rm -r /sdcard/recent_images'\"${Off}"
 				fi
