@@ -11,22 +11,33 @@
 #
 # requirements:
 #	apkinfo
+#	d2j-dex2jar
 #	zipgrep
 #	apktool
 #
 # this program will do the following:
 # [x] extract and display info with apkinfo
-# [x] insufficient certificat validation
-# 	[x] hostname verified:
-# 	[x] auth in protected space:
-# [x] check logging enabled
-# 	[x] check log.e calls
-# 	[X] check logger calls
-# [X] check if app allows snapshots to be taken
-# [X] check if backups are allowed
-# [X] check if debuggin was left enabled
-# [ ] check certificate: jarsigner -verify -certs file.apk  
-# [ ] add more info to finding Insecure Mobile Device Data Storage about int/ext storage
+# This script will check for misconfigurations within the APK.
+# First it uses apkinfo to extract information about the apk.
+# Then it uses d2j-dex2jar to get a .jar file form the apk
+# It then uses zipgrep to search .jar file for misconfigurations
+# Checks:
+	# 1. 	[x] insufficient certificat validation
+	# 			[x] hostname verified:
+	# 			[x] auth in protected space:
+	# [x] check logging enabled
+	# 	[x] check log.e calls
+	# 	[X] check logger calls
+	# [X] check if app allows snapshots to be taken
+	# [X] check if backups are allowed
+	# [X] check if debuggin was left enabled
+	# [ ] check broadcast: sendBroadcast
+	# [ ] check for external storage WRITE_EXTERNAL_STORAGE
+	# [ ] MODE_WORLD_READABLE
+	# [ ] MODE_WORLD_WRITABLE
+	# [ ] check certificate: jarsigner -verify -certs file.apk  
+	# [ ] add more info to finding Insecure Mobile Device Data Storage about int/ext storage
+	# [ ] basic hardcoded secrets check apktool
 
 # Reset
 Off='\033[0m'       # Text Reset
@@ -143,7 +154,7 @@ if [ -f "$APK" ]; then
 	echo -e " Package Name: \t${BWhite}${package_name}${Off}"
 	echo -e " Version Name: \t${BWhite}${version_name}${Off}"
 	echo -e " Version Code: \t${BWhite}${version_code}${Off}"
-	echo -e " Vuln Check #: \t${BWhite}5${Off}"
+	echo -e " Vuln Check #: \t${BWhite}${vulns_checked}${Off}"
 
 	echo -e "\n${UWhite} Checking JAR File Misconfigurations ${Off}\n"
 	d2j-dex2jar $APK -o apk.jar > /dev/null 2>&1	# create jar file from apk
@@ -343,12 +354,80 @@ if [ -f "$APK" ]; then
 				echo -e "\t\t${BGreen}Not vulnerable${Off}"
 			fi
 
+		#################################
+		# Check for hardcoded pem files #
+		#################################
+
+			echo -ne " Checking ${BWhite}hardcoded *.pem files${Off}: "
+			debug="$(find  apk/ -name *.pem)"
+			if [ -n "$debug" ]; then
+				echo -en "\t\t${BRed}Vulnerable${Off} "
+				if [ -n "$VERBOSE" ]; then 
+					echo -e "found pem file in decompiled apk"
+					echo -e "${debug}"
+				else
+					echo ""
+				fi
+
+				# Show how to exploit logging
+
+				if [ -n "$EXPLOIT" ]; then
+					echo -en "\n ${BYellow}[+] Exploit Hardcoded PEM File Found:${Off}"
+					echo -e "\t\tHard coding encryption keys allows an attacker to unencrypt data"
+					echo -e "${ANSWER}access the identified PEM files"
+				fi
+			else
+				echo -e "\t${BGreen}Not vulnerable${Off}"
+			fi
+
+	echo -e "\n${UWhite} Check Framework Used To Build Application ${Off}\n"
+
+		#########################################
+		# Check if application is using flutter #
+		#########################################
+
+			echo -ne " Checking ${BWhite}App built with flutter${Off}: "
+			debug="$(find  apk/ -name libflutter.so)"
+			if [ -n "$debug" ]; then
+				echo -en "\t${BGreen}True${Off} "
+				if [ -n "$VERBOSE" ]; then 
+					echo -e "This application was built with Google's framework Flutter"
+					echo -e "${debug}"
+				else
+					echo ""
+				fi
+
+				# Show how to exploit logging
+
+				if [ -n "$EXPLOIT" ]; then
+					echo -en " ${BYellow}[+] Proxying flutter traffic:${Off}"
+					echo -e "\t\thttps://play.google.com/store/apps/details?id=org.proxydroid"
+					echo -e "${ANSWER}https://blog.funwith.app/posts/proxy-flutter-apps/"
+					echo -e "${ANSWER}https://blog.nviso.eu/2019/08/13/intercepting-traffic-from-android-flutter-applications/"
+					echo -e "${ANSWER}https://www.horangi.com/blog/a-pentesting-guide-to-intercepting-traffic-from-flutter-apps"
+					echo -e "${ANSWER}something useful..."
+					echo -e "${ANSWER}# how make system cert from burp cert"
+					echo -e "${ANSWER}Burp Suite -> Proxy -> Options -> Import / export CA certificate -> save as 'cacert.der'"
+					echo -e "${ANSWER}openssl x509 -inform DER -in cacert.der -out cacert.pem"
+					echo -e "${ANSWER}openssl x509 -inform PEM -subject_hash_old -in cacert.pem |head -1 | xargs -t -I name mv cacert.pem name.0"
+					echo -e "${ANSWER}adb push <cert>.0 /sdcard/"
+					echo -e "${ANSWER}adb shell"
+					echo -e "${ANSWER}su"
+					echo -e "${ANSWER}mount -o rw,remount /"
+					echo -e "${ANSWER}mv /sdcard/<cert>.0 /system/etc/security/cacerts/"
+					echo -e "${ANSWER}chmod 644 /system/etc/security/cacerts/<cert>.0"
+					echo -e "${ANSWER}chown root:root /system/etc/security/cacerts/<cert>.0"
+
+				fi
+			else
+				echo -e "\t${BGreen}Not Using Flutter Proceed Normally${Off}"
+			fi
 
 	echo -e "\n${UWhite} Insecure Mobile Device Data Storage ${Off}\n"
 
 		########################################
 		# Insecure Mobile Device Data Storage #
-		########################################
+		#######################################
 
 			echo -ne " Checking ${BWhite}Device Data Storage${Off}: "
 			echo -en "\t\t${BYellow}Requires Manual Check${Off} "
