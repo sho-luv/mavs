@@ -31,6 +31,7 @@
 	# [X] check if app allows snapshots to be taken
 	# [X] check if backups are allowed
 	# [X] check if debuggin was left enabled
+	# [ ] check for android:usesCleartextTraffic=true
 	# [ ] check broadcast: sendBroadcast
 	# [ ] check for external storage WRITE_EXTERNAL_STORAGE
 	# [ ] MODE_WORLD_READABLE
@@ -286,10 +287,14 @@ if [ -f "$APK" ]; then
 			fi
 
 	rm apk.jar	# clean up jar file
+	
+	#########################################################
+	# decompile apk file to examin androidManifest.xml file #
+	#########################################################
+
+	apktool d $APK -f -o apk > /dev/null 2>&1
 
 	echo -e "\n${UWhite} Checking androidManifest.xml For Misconfigurations ${Off}\n"
-	# decompile apk file to examin androidManifest.xml file
-	apktool d $APK -f -o apk > /dev/null 2>&1
 
 		###############################
 		# Check if app allows backups #
@@ -310,7 +315,7 @@ if [ -f "$APK" ]; then
 					echo ""
 				fi
 
-				# Show how to exploit logging
+				# Show how to exploit backups
 
 				if [ -n "$EXPLOIT" ]; then
 					echo -en "\n ${BYellow}[+] Exploit Backups Allowed:${Off}"
@@ -320,6 +325,35 @@ if [ -f "$APK" ]; then
 					echo -e "${ANSWER}${BCyan}adb backup ${package_name}${White} -then-${Off}"
 					command='( printf "\\x1f\\x8b\\x08\\x00\\x00\\x00\\x00\\x00" ; tail -c +25 backup.ab ) |  tar xfvz -'
 					echo -e "${ANSWER}${BCyan}${command}${Off}\n"
+				fi
+			else
+				echo -e "\t\t${BGreen}Not vulnerable${Off}"
+			fi
+
+		#################################
+		# Check if app allows cleartext #
+		#################################
+
+			echo -ne " Checking ${BWhite}Cleartext Allowed${Off}: "
+			cleartext="$(grep 'android:usesCleartextTraffic="false"' apk/AndroidManifest.xml)"
+			if [ -z "$cleartext" ]; then 	# true if string is empty
+				echo -ne "\t\t${BRed}Vulnerable ${Off}"
+				if [ -n "$VERBOSE" ]; then 	# true if string not empty
+					cleartext2="$(grep 'android:allowBackup="true"' apk/AndroidManifest.xml)"
+					if [ -n "$cleartext2" ]; then
+						echo "android:usesCleartextTraffic=\"true\" found in apk/AndroidManifest.xml"
+					else
+						echo "android:usesCleartextTraffic=\"false\" not explicitly set to prevent cleartext"
+					fi
+				else
+					echo ""
+				fi
+
+				# Show how to exploit cleartext
+
+				if [ -n "$EXPLOIT" ]; then
+					echo -en "\n ${BYellow}[+] Exploit Cleartext Allowed:${Off}"
+					echo -e "\t\tIf cleartext is allowed, it may be possible to sniff cleartext traffic"
 				fi
 			else
 				echo -e "\t\t${BGreen}Not vulnerable${Off}"
@@ -344,10 +378,12 @@ if [ -f "$APK" ]; then
 				if [ -n "$EXPLOIT" ]; then
 					echo -en "\n ${BYellow}[+] Exploit Debugging Enable:${Off}"
 					echo -e "\t\tIf debugging is enabled, it is possible to login as the application"
-					echo -e "${ANSWER}and access the applications directory/files. Example commands to run"
+					echo -e "${ANSWER}and access the applications directory/files. Root is not needed."
+					echo -e "${ANSWER}Example commands to run"
 					echo -e "${ANSWER}${BCyan}adb shell run-as ${package_name}${White} -or-${Off}"
 					# check which one of these works...
-					echo -e "${ANSWER}${BCyan}adb shell run-as ${package_name} tar c ./ > debug.tar${White} -or-${Off}"
+					echo -e "${ANSWER}${BCyan}adb shell run-as ${package_name} tar c ./ > debug.tar && tar -xvf debug.tar --one-top-level${Off}"
+					echo -e "${ANSWER}-or-${Off}"
 					echo -e "${ANSWER}${BCyan}adb shell exec-out run-as ${package_name} tar c databases/ > databases.tar${Off}"
 				fi
 			else
