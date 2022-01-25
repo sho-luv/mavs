@@ -66,12 +66,10 @@ Usage: mavs.sh [OPTIONS]
 
 1. Insufficient Certificate Validation -- partial check
 2. Application Logging
-3. Backups Allowed
-4. Debugging Enabled
-5. Snapshot Allowed
+3. Backups Allowed 
 4. Snapshot Allowed
-5. Cleartext Allowed
-6. Debugging Enabled
-7. Hard codded *.pem files
-8. App built with flutter
-9. Provides examples on how to check app, device storage issues
+6. Cleartext Allowed
+7. Debugging Enabled
+8. Hard codded *.pem files
+9. App built with flutter
+10. Provides examples on how to check app, device storage issues
