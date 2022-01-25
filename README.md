@@ -69,3 +69,9 @@ Usage: mavs.sh [OPTIONS]
 3. Backups Allowed
 4. Debugging Enabled
 5. Snapshot Allowed
+4. Snapshot Allowed
+5. Cleartext Allowed
+6. Debugging Enabled
+7. Hard codded *.pem files
+8. App built with flutter
+9. Provides examples on how to check app, device storage issues
