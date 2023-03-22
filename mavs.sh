@@ -141,6 +141,57 @@ if [ -z $rflag ]; then
     exit 1
 fi
 
+# Check if apkinfo is installed
+
+# Check if apkinfo is installed
+if ! which apkinfo > /dev/null; then
+    echo -e "${BRed}apkinfo is not installed.${Off}"
+    read -p "Do you want to install it now? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+        sudo apt install apkinfo
+    else
+        exit 1
+    fi
+fi
+
+# Check if dex2jar is installed
+if ! which d2j-dex2jar > /dev/null; then
+    echo -e "${BRed}dex2jar is not installed.${Off}"
+    read -p "Do you want to install it now? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+        sudo apt install dex2jar
+    else
+        exit 1
+    fi
+fi
+
+
+# Check if zipgrep is installed
+if ! which zipgrep > /dev/null; then
+    echo -e "${BRed}zipgrep is not installed.${Off}"
+    read -p "Do you want to install it now? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+        sudo apt install zipgrep
+    else
+        exit 1
+    fi
+fi
+
+# Check if apktool is installed
+if ! which apktool > /dev/null; then
+    echo -e "${BRed}apktool is not installed.${Off}"
+    read -p "Do you want to install it now? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
+        sudo apt install apktool
+    else
+        exit 1
+    fi
+fi
+
 if [ -f "$APK" ]; then 
   	echo -e "${banner}"
 	info=$(apkinfo $APK 2> /dev/null | awk -F': ' '{print $2}')
