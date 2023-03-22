@@ -31,7 +31,10 @@
 	# [X] check if app allows snapshots to be taken
 	# [X] check if backups are allowed
 	# [X] check if debuggin was left enabled
-	# [ ] check for android:usesCleartextTraffic=true
+	# [X] check for android:usesCleartextTraffic=true
+	# [ ] check outdated software (in progress)
+	#	[ ]	libpng
+	#	[ ]	sqlite
 	# [ ] check broadcast: sendBroadcast
 	# [ ] check for external storage WRITE_EXTERNAL_STORAGE
 	# [ ] MODE_WORLD_READABLE
@@ -148,7 +151,7 @@ if [ -f "$APK" ]; then
 	package_name=${info[2]}
 	version_name=${info[3]}
 	version_code=${info[4]}
-	vulns_checked="6"
+	vulns_checked="9"
 
 	echo -e " App Name: \t${BWhite}${app_name}${Off}"
 	echo -e " APK File: \t${BWhite}${apk_file}${Off}"
@@ -280,8 +283,8 @@ if [ -f "$APK" ]; then
 					#adb shell "su -c 'cp -rf /data/system_ce/0/snapshots /data/local/tmp/ && chmod -R 777 /data/local/tmp/snapshots'" && adb pull /data/local/tmp/snapshots && adb shell "su -c 'rm -r /data/local/tmp/snapshots'"
 					echo -e "${ANSWER}${BYellow}Newer versions of Android:"
 					echo -e "${ANSWER}${BCyan}adb shell \"su -c 'cp -rf /data/system_ce/0/snapshots /data/local/tmp/'\"${Off}"
-					echo -e "${ANSWER}${BCyan}chmod -R 777 /data/local/tmp/snapshots\"${Off}"
-					echo -e "${ANSWER}${BCyan}adb pull /data/local/tmp/snapshots\"${Off}"
+					echo -e "${ANSWER}${BCyan}chmod -R 777 \"/data/local/tmp/snapshots\"${Off}"
+					echo -e "${ANSWER}${BCyan}adb pull \"/data/local/tmp/snapshots\"${Off}"
 					echo -e "${ANSWER}${BCyan}adb shell \"su -c 'rm -r /data/local/tmp/snapshots'\"${Off}"
 				fi
 			fi
@@ -293,6 +296,35 @@ if [ -f "$APK" ]; then
 	#########################################################
 
 	apktool d $APK -f -o apk > /dev/null 2>&1
+
+	echo -e "\n${UWhite} Checking APK for outdated software versions ${Off}\n"
+
+		###############################
+		# Check if app allows backups #
+		###############################
+
+		# help solving this problem:
+		# https://unix.stackexchange.com/questions/285924/how-to-compare-a-programs-version-in-a-shell-script
+		# 
+
+			echo -ne " Checking ${BWhite}Outdated Software Versions${Off}: "
+			#outdated="$(grep -air 'libpng version' apk)"
+			outdated="$(grep -air 'libpng version' apk)"
+			if [ -n "$outdated" ]; then 	# true if string not empty
+				echo -ne "\t${BRed}Vulnerable ${Off}"
+				if [ -n "$VERBOSE" ]; then 	# true if string not empty
+					echo "\nThe following libpng versions were identified: "
+					echo -e "${ANSWER}${outdated}"
+				else
+					echo "The following libpng versions were identified: ${outdated}"
+				fi
+
+				if [ -n "$EXPLOIT" ]; then
+					echo -en "\n ${BYellow}[+] Exploit Outdated Software Versions:${Off}"
+				fi
+			else
+				echo -e "\t${BGreen}Not vulnerable${Off}"
+			fi
 
 	echo -e "\n${UWhite} Checking androidManifest.xml For Misconfigurations ${Off}\n"
 
@@ -491,6 +523,10 @@ if [ -f "$APK" ]; then
 
 	echo ""
 	rm -rf apk	# delete decompiled apk files
+
+	echo -en "\n ${BYellow}[+] Lets install the app on a device and test it out!${Off}"
+	echo -e "\n adb install ${package_name}"
+
 else
 	echo -e "${BWhite}${APK}${Off}${BRed} File Not Found!${Off}"
 fi
