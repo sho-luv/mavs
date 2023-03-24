@@ -142,8 +142,6 @@ if [ -z $rflag ]; then
 fi
 
 # Check if apkinfo is installed
-
-# Check if apkinfo is installed
 if ! which apkinfo > /dev/null; then
     echo -e "${BRed}apkinfo is not installed.${Off}"
     read -p "Do you want to install it now? [Y/n] " -n 1 -r
