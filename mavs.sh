@@ -359,7 +359,8 @@ if [ -f "$APK" ]; then
 		# 
 
 			echo -ne " Checking ${BWhite}Outdated Software Versions${Off}: "
-			#outdated="$(grep -air 'libpng version' apk)"
+
+			# Search for outdated libpng versions
 			outdated="$(grep -air 'libpng version' apk)"
 			if [ -n "$outdated" ]; then 	# true if string not empty
 				echo -ne "\t${BRed}Vulnerable ${Off}"
