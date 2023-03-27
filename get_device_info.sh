@@ -44,10 +44,10 @@ if ! adb get-state &> /dev/null; then
     exit 1
 fi
 
-sdk_version=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+api_level=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
 code_name=""
 
-case $sdk_version in
+case $api_level in
     14|15) code_name="Ice Cream Sandwich";;
     16|17|18) code_name="Jelly Bean";;
     19|20) code_name="KitKat";;
@@ -81,9 +81,9 @@ echo -e "Device serial number: ${Yellow}$device_serial${Off}"
 echo -e "Device name: ${Yellow}$device_name${Off}"
 echo -e "Device build ID: ${Yellow}$device_build_id${Off}"
 echo -e "Device build fingerprint: ${Yellow}$device_build_fingerprint${Off}"
-echo -e "Android SDK version: ${Yellow}$sdk_version${Off}"
 echo -e "Android version code name: ${Yellow}$code_name${Off}"
 echo -e "Android Version: ${Yellow}${android_version} (${android_codename})${Off}"
+echo -e "Android API level: ${Yellow}$api_level${Off}"
 
 root_status=$(adb shell id)
 
