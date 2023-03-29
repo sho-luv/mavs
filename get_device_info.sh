@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#
+# By Leon Johnson - twitter.com/sho_luv
+
 Off='\033[0m'       # Text Reset
 
 # Regular Colors
