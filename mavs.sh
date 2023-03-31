@@ -575,7 +575,10 @@ if [ -f "$APK" ]; then
 	rm -rf apk	# delete decompiled apk files
 
 	echo -en "\n ${BYellow}[+] Lets install the app on a device and test it out!${Off}"
-	echo -e "\n adb install ${package_name}"
+	echo -e "\n adb install ${apk_file}"
+
+	echo -e "\n adb push ${apk_file} /data/local/tmp/ && adb shell -t su -c \"pm install -t -r -g /data/local/tmp/${apk_file}\""
+
 
 else
 	echo -e "${BWhite}${APK}${Off}${BRed} File Not Found!${Off}"
