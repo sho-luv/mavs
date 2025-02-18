@@ -1,100 +1,162 @@
 #!/bin/bash
 
+###############################################################################
+#  Colors
+###############################################################################
 Off='\033[0m'       # Text Reset
 
 # Regular Colors
-Black='\033[0;30m'        # Black
-Red='\033[0;31m'          # Red
-Green='\033[0;32m'        # Green
-Yellow='\033[0;33m'       # Yellow
-Blue='\033[0;34m'         # Blue
-Purple='\033[0;35m'       # Purple
-Cyan='\033[0;36m'         # Cyan
-White='\033[0;37m'        # White
+Black='\033[0;30m'
+Red='\033[0;31m'
+Green='\033[0;32m'
+Yellow='\033[0;33m'
+Blue='\033[0;34m'
+Purple='\033[0;35m'
+Cyan='\033[0;36m'
+White='\033[0;37m'
 
 # Bold
-BBlack='\033[1;30m'       # Black
-BRed='\033[1;31m'         # Red
-BGreen='\033[1;32m'       # Green
-BYellow='\033[1;33m'      # Yellow
-BBlue='\033[1;34m'        # Blue
-BPurple='\033[1;35m'      # Purple
-BCyan='\033[1;36m'        # Cyan
-BWhite='\033[1;37m'       # White
+BBlack='\033[1;30m'
+BRed='\033[1;31m'
+BGreen='\033[1;32m'
+BYellow='\033[1;33m'
+BBlue='\033[1;34m'
+BPurple='\033[1;35m'
+BCyan='\033[1;36m'
+BWhite='\033[1;37m'
 
 # Underline
-UWhite='\033[4;37m'       # White
+UWhite='\033[4;37m'
 
 
-
-# Function to display usage
+###############################################################################
+#  Usage
+###############################################################################
 usage() {
-  	echo "Usage: $0 [-c|--check]"
+  	echo "Usage: $0 [options]"
   	echo
   	echo "Options:"
-  	echo "  -c, --check Check if there is a Burp Suite Pro System CA on the Android Device."
-  	echo "  -a, --all Pull all the certificate authorities from the Android device."
+  	echo "  -c, --check      Check if there is a Burp Suite Pro System CA on the device."
+  	echo "  -a, --all        Pull all certificate authorities from the device."
+  	echo "  --enable-geny-root  (Optional) Force the Genymotion root-enabling procedure."
   	echo
   	echo "Description:"
-  	echo " This script retrieves device information, extracts the Burp Suite certificate authority (CA) from the device,"
-	echo " compares its fingerprint with an exported certificate, and provides an option to install the certificate if needed."
-	echo " The script is designed to help manage Burp Suite CA certificates on rooted Android devices, ensuring the proper"
-	echo " certificate is installed and up-to-date for security testing purposes."
-	echo ""
-
-  echo
-  exit 1
+  	echo "  This script retrieves device information, extracts the Burp Suite certificate authority (CA) from the device,"
+  	echo "  compares its fingerprint with an exported certificate, and provides an option to install/update the CA in"
+  	echo "  /system/etc/security/cacerts. If using Genymotion, it can enable full root by setting persist.sys.root_access=3."
+  	echo
+  	exit 1
 }
 
+###############################################################################
+#  Detect OS
+###############################################################################
+detect_os() {
+  # You can also use: [[ "$OSTYPE" == "darwin"* ]] for macOS
+  local uname_out
+  uname_out=$(uname -s 2>/dev/null || echo "Unknown")
+
+  case "$uname_out" in
+    Linux*)   echo "Linux" ;;
+    Darwin*)  echo "Mac"   ;;
+    *)        echo "Other" ;;
+  esac
+}
+
+###############################################################################
+#  Install ADB for OS
+###############################################################################
+install_adb_for_os() {
+  local current_os="$1"
+
+  if [[ "$current_os" == "Linux" ]]; then
+    # Attempt apt-based install
+    if command -v apt &>/dev/null; then
+      echo -e "${BYellow}[*] Installing adb via 'sudo apt install android-platform-tools'...${Off}"
+      sudo apt update && sudo apt install -y android-platform-tools
+    else
+      echo -e "${BRed}[-] 'apt' not found; please install adb manually for your Linux distribution.${Off}"
+      exit 1
+    fi
+
+  elif [[ "$current_os" == "Mac" ]]; then
+    # Attempt brew-based install
+    if command -v brew &>/dev/null; then
+      echo -e "${BYellow}[*] Installing adb via 'brew install android-platform-tools'...${Off}"
+      brew install android-platform-tools
+    else
+      echo -e "${BRed}[-] Homebrew not found; please install Homebrew and try again, or install adb manually.${Off}"
+      exit 1
+    fi
+  else
+    echo -e "${BRed}[-] Unsupported OS. Please install adb manually.${Off}"
+    exit 1
+  fi
+}
+
+###############################################################################
+#  check_adb_installed
+###############################################################################
 check_adb_installed(){
 	if ! command -v adb &> /dev/null; then
-		echo "adb not found. Please install Android platform tools."
+		echo -e "${BRed}[-] adb not found on your system.${Off}"
 		read -p "Do you want to install it now? [Y/n] " -n 1 -r
 		echo
 		if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
-			sudo apt install android-platform-tools
+			local this_os
+			this_os=$(detect_os)
+			install_adb_for_os "$this_os"
 		else
+			echo -e "${BYellow}[*] Exiting. You must have 'adb' installed to continue.${Off}"
 			exit 1
 		fi
 	fi
 }
 
+###############################################################################
+#  check_device_connected
+###############################################################################
 check_device_connected(){
-	# Check if a device is connected
 	if ! adb get-state &> /dev/null; then
-		echo "No device found. Please connect a device or check if adb is working."
+		echo -e "${BRed}[-] No device found. Please connect a device or check if adb is working.${Off}"
 		exit 1
 	fi
 }
 
+###############################################################################
+#  get_device_info
+###############################################################################
 get_device_info(){
+	local sdk_version code_name android_version android_codename
+	local device_model device_manufacturer device_serial device_name
+	local device_build_id device_build_fingerprint
+
 	sdk_version=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
 	code_name=""
 
 	case $sdk_version in
 		14|15) code_name="Ice Cream Sandwich";;
 		16|17|18) code_name="Jelly Bean";;
-		19|20) code_name="KitKat";;
-		21|22) code_name="Lollipop";;
-		23) code_name="Marshmallow";;
-		24|25) code_name="Nougat";;
-		26|27) code_name="Oreo";;
-		28) code_name="Pie";;
-		29) code_name="Android 10";;
-		30) code_name="Android 11";;
-		31) code_name="Android 12";;
-		32) code_name="Android 12L";;
-		33) code_name="Android 13";;
-		*) code_name="Unknown";;
+		19|20)   code_name="KitKat";;
+		21|22)   code_name="Lollipop";;
+		23)      code_name="Marshmallow";;
+		24|25)   code_name="Nougat";;
+		26|27)   code_name="Oreo";;
+		28)      code_name="Pie";;
+		29)      code_name="Android 10";;
+		30)      code_name="Android 11";;
+		31)      code_name="Android 12";;
+		32)      code_name="Android 12L";;
+		33)      code_name="Android 13";;
+		*)       code_name="Unknown";;
 	esac
 
-	# Get Android version and codename
-	android_version=$(adb shell getprop ro.build.version.release)
-	android_codename=$(adb shell getprop ro.build.version.codename)
+	android_version=$(adb shell getprop ro.build.version.release | tr -d '\r')
+	android_codename=$(adb shell getprop ro.build.version.codename | tr -d '\r')
 
 	device_model=$(adb shell getprop ro.product.model | tr -d '\r')
 	device_manufacturer=$(adb shell getprop ro.product.manufacturer | tr -d '\r')
-	device_serial=$(adb get-serialno)
+	device_serial=$(adb get-serialno | tr -d '\r')
 	device_name=$(adb shell getprop ro.product.name | tr -d '\r')
 	device_build_id=$(adb shell getprop ro.build.id | tr -d '\r')
 	device_build_fingerprint=$(adb shell getprop ro.build.fingerprint | tr -d '\r')
@@ -108,10 +170,13 @@ get_device_info(){
 	echo -e "Android SDK version: ${Yellow}$sdk_version${Off}"
 	echo -e "Android version code name: ${Yellow}$code_name${Off}"
 	echo -e "Android Version: ${Yellow}${android_version} (${android_codename})${Off}"
-
 }
 
+###############################################################################
+#  check_rooted
+###############################################################################
 check_rooted(){
+	local root_status
 	root_status=$(adb shell id)
 
 	if [[ $root_status == *"uid=0"* ]]; then
@@ -122,197 +187,259 @@ check_rooted(){
 
 	echo -ne "Device root status: $adb_root_check "
 
-	root_get_packages=$(adb shell -t su -c pm list packages)
-
 	if adb shell -t su -c pm list packages &> /dev/null; then
 		echo -e "${BWhite}successfully listed packages with root${Off}"
 	else
-		echo -e "${BRed}Can not list packages with root${Off}"
+		echo -e "${BRed}Cannot list packages with root${Off}"
 	fi
 }
 
+###############################################################################
+#  pull_all_certs
+###############################################################################
 pull_all_certs(){
-	if ! adb pull "/system/etc/security/cacerts/" . &> /dev/null; then
-		echo -e "${BRed}Was unable to extract the System CA's from device${Off}"
-		#exit 1
+	if ! adb pull "/system/etc/security/cacerts/" ./cacerts &> /dev/null; then
+		echo -e "${BRed}[-] Unable to extract System CAs from device.${Off}"
 	else
-		echo -e "${BGreen}[+] ${Off}Successfully extracted System CA's to "./cacerts"${Off}"
+		echo -e "${BGreen}[+]${Off} Successfully extracted System CAs to \"./cacerts\"."
 	fi
-
 }
 
+###############################################################################
+#  enable_genymotion_root
+#  (Sets persist.sys.root_access=3, restarts adbd as root)
+###############################################################################
+enable_genymotion_root(){
+	echo -e "${BYellow}[*] Attempting to enable full root on Genymotion (persist.sys.root_access=3)...${Off}"
+	adb root
+	sleep 2
+	adb wait-for-device
+
+	adb shell setprop persist.sys.root_access 3
+	sleep 1
+
+	adb root
+	sleep 2
+	adb wait-for-device
+	echo -e "${BGreen}[+]${Off} Genymotion root access enabled (if supported)."
+}
+
+###############################################################################
+#  direct_mount_and_copy
+#  (Tries to remount / or /system as rw, then move certificate)
+###############################################################################
+direct_mount_and_copy(){
+	local cert_name="$1"
+
+	echo -e "${BYellow}[*] Attempting direct remount of '/' or '/system'...${Off}"
+	if adb shell su -c "mount -o rw,remount /" &>/dev/null; then
+		echo -e "${BGreen}[+]${Off} Remounted '/' read-write."
+	elif adb shell su -c "mount -o rw,remount /system" &>/dev/null; then
+		echo -e "${BGreen}[+]${Off} Remounted '/system' read-write."
+	else
+		echo -e "${BRed}[-] Failed to remount system partition read-write.${Off}"
+		return 1
+	fi
+
+	# Move from /sdcard/${cert_name} to /system/etc/security/cacerts/${cert_name}
+	if adb shell su -c "mv /sdcard/${cert_name} /system/etc/security/cacerts/${cert_name}" &>/dev/null; then
+		adb shell su -c "chmod 644 /system/etc/security/cacerts/${cert_name}"
+		adb shell su -c "chown root:root /system/etc/security/cacerts/${cert_name}"
+		adb shell su -c "chcon u:object_r:system_file:s0 /system/etc/security/cacerts/${cert_name}"
+		echo -e "${BGreen}[+]${Off} Certificate moved to system store with direct remount."
+		return 0
+	else
+		echo -e "${BRed}[-] Failed to move certificate with direct remount method.${Off}"
+		return 1
+	fi
+}
+
+###############################################################################
+#  push_certificate
+#  - converts local cacert.der -> PEM -> <hash>.0
+#  - tries direct_mount_and_copy; if fails, uses tmpfs fallback
+###############################################################################
+push_certificate() {
+	local DER_FILE="cacert.der"
+
+	if [[ ! -f "$DER_FILE" ]]; then
+		echo -e "${BRed}[-] No DER file named 'cacert.der' found in current directory.${Off}"
+		return 1
+	fi
+
+	echo -e "${BGreen}[+]${Off} Converting certificate from DER to PEM..."
+	if ! openssl x509 -inform DER -in "$DER_FILE" -out cacert.pem; then
+		echo -e "${BRed}[-] OpenSSL conversion from DER to PEM failed.${Off}"
+		return 1
+	fi
+
+	echo -e "${BGreen}[+]${Off} Renaming certificate to Android <hash>.0 format..."
+	local HASH
+	HASH=$(openssl x509 -inform PEM -subject_hash_old -in cacert.pem | head -1)
+	mv cacert.pem "$HASH.0"
+
+	local CERT_NAME="$HASH.0"
+	echo -e "${BGreen}[+]${Off} Pushing certificate $CERT_NAME to /sdcard/$CERT_NAME"
+	if ! adb push "$CERT_NAME" "/sdcard/$CERT_NAME" &>/dev/null; then
+		echo -e "${BRed}[-] Failed to push $CERT_NAME to device /sdcard.${Off}"
+		return 1
+	fi
+
+	echo -e "${BYellow}[*] Trying direct mount method...${Off}"
+	if direct_mount_and_copy "$CERT_NAME"; then
+		echo -e "${BGreen}[+]${Off} Direct mount method succeeded!"
+	else
+		# If direct method fails, use the tmpfs fallback
+		echo -e "${BYellow}[!] Falling back to tmpfs trick...${Off}"
+		if adb shell -t su -c "set -e; \
+			mkdir -m 700 /data/local/tmp/htk-ca-copy; \
+			cp /system/etc/security/cacerts/* /data/local/tmp/htk-ca-copy/; \
+			mount -t tmpfs tmpfs /system/etc/security/cacerts; \
+			mv /data/local/tmp/htk-ca-copy/* /system/etc/security/cacerts/; \
+			mv /sdcard/$CERT_NAME /system/etc/security/cacerts/$CERT_NAME; \
+			chown root:root /system/etc/security/cacerts/*; \
+			chmod 644 /system/etc/security/cacerts/*; \
+			chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*; \
+			rm -r /data/local/tmp/htk-ca-copy" \
+		; then
+			echo -e "${BGreen}[+]${Off} Certificate successfully installed via tmpfs fallback!"
+		else
+			echo -e "${BRed}[-] Certificate installation failed even via tmpfs fallback.${Off}"
+			return 1
+		fi
+	fi
+
+	# Optional: reboot so the system picks up the new CA
+	echo -e "${BYellow}[*] Rebooting the device for changes to take effect...${Off}"
+	adb shell reboot
+	sleep 5
+	adb wait-for-device
+	echo -e "${BGreen}[+]${BYellow} Certificate successfully installed!${Off}"
+	return 0
+}
+
+###############################################################################
+#  check_burp_cert
+###############################################################################
 check_burp_cert(){
 	echo ""
-	echo -e "${BWhite}Let's Check The Certificate Authorities On This Device:${Off}"
+	echo -e "${BWhite}Checking for Burp Suite CA on this device...${Off}"
 	echo ""
 
-
-	# Check if you can extract CA certificates
+	# Attempt to pull the usual Burp cert from system
 	if adb pull "/system/etc/security/cacerts/9a5ba575.0" . &> /dev/null; then
-		echo -e "${BGreen}[+] ${Off}Successfully extracted Burp Suite System CA to "./9a5ba575.0"${Off}"
+		echo -e "${BGreen}[+]${Off} Found Burp Suite System CA as \"./9a5ba575.0\""
 	fi
 
 	get_sha1_fingerprint(){
 		local burp_cert=$1
 		local type=$2
-		echo -e "    $(openssl x509 -in ${burp_cert} -inform ${type} -noout -fingerprint -sha1)"
-		
+		openssl x509 -in "${burp_cert}" -inform "${type}" -noout -fingerprint -sha1 2>/dev/null
 	}
 	get_sha256_fingerprint(){
 		local burp_cert=$1
 		local type=$2
-		echo -e "    $(openssl x509 -in ${burp_cert} -inform ${type} -noout -fingerprint -sha256)"
-		
+		openssl x509 -in "${burp_cert}" -inform "${type}" -noout -fingerprint -sha256 2>/dev/null
 	}
 
-	push_certificate() {
-		
-		echo -e "${BGreen}[+] ${Off}Converting certificate from DER to PEM${Off}"
-		openssl x509 -inform DER -in cacert.der -out cacert.pem 
+	local burp_system_pem="./9a5ba575.0"   # Pulled from device if exists
+	local burp_system_der="./cacert.der"   # Locally exported DER file
 
-		echo -e "${BGreen}[+] ${Off}Changing name of certificate to Android format${Off}"
-		HASH=$(openssl x509 -inform PEM -subject_hash_old -in cacert.pem | head -1) 
-		mv cacert.pem $HASH.0 
-
-		echo -e "${BGreen}[+] ${Off}Moving certificate to Android sdcard${Off}"
-		adb push $HASH.0 /sdcard/
-	  
-		echo -e "${BGreen}[+] ${Off}Using ADB shell to create virtual temporary file system${Off}"
-		if adb shell -t su -c "set -e; \
-			mkdir -m 700 /data/local/tmp/htk-ca-copy; \
-			cp /system/etc/security/cacerts/* /data/local/tmp/htk-ca-copy/; \
-			mount -t tmpfs tmpfs /system/etc/security/cacerts; \
-			mv /data/local/tmp/htk-ca-copy/ /system/etc/security/cacerts/; \
-			mv /sdcard/$HASH.0 /system/etc/security/cacerts/; \
-			chown root:root /system/etc/security/cacerts/*; \
-			chmod 644 /system/etc/security/cacerts/*; \
-			chcon u:object_r:system_file:s0 /system/etc/security/cacerts/*; \
-			rm -r /data/local/tmp/htk-ca-copy"
-		then
-			echo -e "${BGreen}[+] ${BYellow}Certificate successfully Installed!${Off}"
-		else
-			echo -e "${BRed}[+] ${Off}Certificate Installation Failed :(${Off}"
-		fi
-	}
-
-	# Check if there is already a Burp certificate on device
-	if [ -e "./9a5ba575.0" ]; then
-		burp_system_pem="./9a5ba575.0"
-	else 
-		if [ -e "./cacerts/9a5ba575.0" ]; then
-			burp_system_pem="./cacerts/9a5ba575.0"
-		fi
-	fi
-
-	burp_system_der="./cacert.der"
-
-	if [ -e "$burp_system_pem" ]; then
-
-		echo -e "${BGreen}[+] ${Off}Found Burp PEM formated certificate already installed on this device with following fingerprints:${Off}"
+	if [[ -f "$burp_system_pem" ]]; then
+		echo -e "${BGreen}[+]${Off} Burp PEM certificate is in system store with these fingerprints:"
+		local pem_sha1
+		local pem_sha256
+		pem_sha1="$(get_sha1_fingerprint "$burp_system_pem" "PEM")"
+		pem_sha256="$(get_sha256_fingerprint "$burp_system_pem" "PEM")"
+		echo "   $pem_sha1"
+		echo "   $pem_sha256"
 		echo ""
-		pem_sha1=$(get_sha1_fingerprint "$burp_system_pem" "PEM")
-		pem_sha256=$(get_sha256_fingerprint "$burp_system_pem" "PEM")
-		echo -e "   $pem_sha1"
-		echo -e "   $pem_sha256"
 
-		if [ -e "$burp_system_der" ]; then
-
-			#echo ""
-			echo -e "${BGreen}[+] ${Off}Found Burp exported DER formated certificate in current directory with following fingerprintes:${Off}"
+		if [[ -f "$burp_system_der" ]]; then
+			echo -e "${BGreen}[+]${Off} Found local DER '$burp_system_der' with these fingerprints:"
+			local der_sha1
+			local der_sha256
+			der_sha1="$(get_sha1_fingerprint "$burp_system_der" "DER")"
+			der_sha256="$(get_sha256_fingerprint "$burp_system_der" "DER")"
+			echo "   $der_sha1"
+			echo "   $der_sha256"
 			echo ""
-			der_sha1=$(get_sha1_fingerprint "$burp_system_der" "DER")
-			der_sha256=$(get_sha256_fingerprint "$burp_system_der" "DER")
-			echo -e "   $der_sha1"
-			echo -e "   $der_sha256"
 
 			if [[ "$der_sha1" == "$pem_sha1" ]]; then
-				echo ""
-				echo -e "${BGreen}[+] ${BYellow}The fingerprints match! No need to install again.${Off}"
-				echo ""
-				read -p "It's unnecessary, however do you want to still want to install it? [N/y]" -n 1 -r
-				if [[ $REPLY =~ ^[Nn]$ || $REPLY == "" ]]; then
-					echo ""
-					echo -e "${BYellow}[+] ${Off}Have a nice day :)${Off}"
-					echo ""
-					exit 1
-				else
-					echo ""
+				echo -e "${BGreen}[+]${BYellow} The fingerprints match! No need to reinstall.${Off}"
+				read -p "Unnecessary, but do you want to reinstall anyway? [N/y] " -n 1 -r
+				echo
+				if [[ $REPLY =~ ^[Yy]$ ]]; then
 					push_certificate
-					echo ""
-					echo -e "${BGreen}[+] ${BYellow}Certificate successfully Installed!${Off}"
-					echo ""
-					echo -e "${BYellow}[+] ${Off}Have a nice day :)${Off}"
-					echo ""
+				else
+					echo -e "${BYellow}[+]${Off} Have a nice day :)"
 				fi
 			else
-				echo -e "${BRed}[+] ${Off}The fingerprints do not match!:${Off}"
-				read -p "Do you want to install the one in this directory now? [Y/n] " -n 1 -r
+				echo -e "${BRed}[-] The fingerprints do not match.${Off}"
+				read -p "Install the DER from this directory now? [Y/n] " -n 1 -r
+				echo
 				if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
 					push_certificate
-
-					echo -e "${BGreen}[+] ${BYellow}Certificate successfully Installed!${Off}"
 				fi
 			fi
 		else
-			echo ""
-			echo -e "${BRed}[+] ${Off}Found no Burp xported DER foramated certificate named "cacert.der" in current directory"
-			echo -e "${BRed}    ${Off}Please export DER formated Burp Suite Pro certificate: \n (Proxy Settings -> Import/export CA certificate -> Certificate in DER format) "
-				exit 1
+			echo -e "${BRed}[-] No local 'cacert.der' found for comparison.${Off}"
+			echo -e "    Please export Burp's CA in DER format and name it 'cacert.der'."
 		fi
 	else
-		echo -e "${BRed}[+] ${Off}Did not Find Burp Suite CA certificate on this device${Off}"
-		if [ -e "$burp_system_der" ]; then
-
-			echo -e "${BGreen}[+] ${Off}Found Burp exported DER formated certificate in current directory with following fingerprintes:${Off}"
+		echo -e "${BRed}[-] No Burp Suite CA (9a5ba575.0) found in system store.${Off}"
+		if [[ -f "$burp_system_der" ]]; then
+			echo -e "${BGreen}[+]${Off} Found local DER '$burp_system_der' with these fingerprints:"
+			local der_sha1
+			local der_sha256
+			der_sha1="$(get_sha1_fingerprint "$burp_system_der" "DER")"
+			der_sha256="$(get_sha256_fingerprint "$burp_system_der" "DER")"
+			echo "   $der_sha1"
+			echo "   $der_sha256"
 			echo ""
-			der_sha1=$(get_sha1_fingerprint "$burp_system_der" "DER")
-			der_sha256=$(get_sha256_fingerprint "$burp_system_der" "DER")
-			echo -e "   $der_sha1"
-			echo -e "   $der_sha256"
 
-			echo ""
 			read -p "Do you want to install this certificate? [Y/n] " -n 1 -r
+			echo
 			if [[ $REPLY =~ ^[Yy]$ || $REPLY == "" ]]; then
-					push_certificate
-
-				echo ""
-				echo -e "${BGreen}[+] ${BYellow}Certificate successfully Installed!${Off}"
-				echo ""
-				echo -e "${BYellow}[+] ${Off}Have a nice day :)${Off}"
-				echo ""
+				push_certificate
 			else
-				echo ""
-				echo ""
-				echo -e "${BYellow}[+] ${Off}Ok Then have a nice day :)${Off}"
-				echo ""
+				echo -e "${BYellow}[+]${Off} Ok, have a nice day :)"
 			fi
 		else
-			echo -e "${BRed}[+] ${Off}Found no Burp xported DER foramated certificate named "cacert.der" in current directory"
-			echo -e "${BYellow}[+] ${Off}Please export DER formated Burp Suite Pro certificate:"
-			echo -e "${BYellow}[+] ${Off}(Proxy Settings -> Import/export CA certificate -> Certificate in DER format) save it here as cacert.der "
-			echo -e "${BYellow}[+] ${Off}Save it to this directory and name it \"cacert.der\""
-			echo ""
+			echo -e "${BRed}[-] No local 'cacert.der' found; cannot install Burp CA.${Off}"
+			echo -e "${BYellow}Export a DER cert from Burp and rename it 'cacert.der'.${Off}"
 		fi
 	fi
-}	
+}
 
+###############################################################################
+#  Main
+###############################################################################
 if check_adb_installed && check_device_connected; then
 	get_device_info
 	check_rooted
-	if [[ "$#" -gt 0 ]]; then
 
-		case $1 in
+	while [[ "$#" -gt 0 ]]; do
+		case "$1" in
 			-c|--check)
 				check_burp_cert
 				shift
 				;;
 			-a|--all)
+				pull_all_certs
 				shift
 				;;
-			-h)
+			--enable-geny-root)
+				enable_genymotion_root
+				shift
+				;;
+			-h|--help)
 				usage
-				break
+				;;
+			*)
+				echo -e "${BRed}Unknown option: $1${Off}"
+				usage
 				;;
 		esac
-	fi
-fi	
+	done
+fi
