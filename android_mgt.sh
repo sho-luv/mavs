@@ -28,7 +28,6 @@ BWhite='\033[1;37m'
 # Underline
 UWhite='\033[4;37m'
 
-
 ###############################################################################
 #  Usage
 ###############################################################################
@@ -36,8 +35,8 @@ usage() {
   	echo "Usage: $0 [options]"
   	echo
   	echo "Options:"
-  	echo "  -c, --check      Check if there is a Burp Suite Pro System CA on the device."
-  	echo "  -a, --all        Pull all certificate authorities from the device."
+  	echo "  -c, --check         Check if there is a Burp Suite Pro System CA on the device."
+  	echo "  -a, --all           Pull all certificate authorities from the device."
   	echo "  --enable-geny-root  (Optional) Force the Genymotion root-enabling procedure."
   	echo
   	echo "Description:"
@@ -114,13 +113,37 @@ check_adb_installed(){
 }
 
 ###############################################################################
-#  check_device_connected
+#  select_device_or_fail
+#  - Lists all online devices. If none, exit. If 1, pick it. If multiple, prompt.
 ###############################################################################
-check_device_connected(){
-	if ! adb get-state &> /dev/null; then
-		echo -e "${BRed}[-] No device found. Please connect a device or check if adb is working.${Off}"
-		exit 1
-	fi
+select_device_or_fail(){
+  local devices_list
+  devices_list=$(adb devices | awk '/\tdevice$/ {print $1}')  # Only those listed as "device"
+
+  if [ -z "$devices_list" ]; then
+    echo -e "${BRed}[-] No online device found. Offline or no devices connected.${Off}"
+    exit 1
+  fi
+
+  local device_count
+  device_count=$(echo "$devices_list" | wc -l | tr -d ' ')
+
+  if [ "$device_count" -eq 1 ]; then
+    DEVICE_ID="$devices_list"
+    echo -e "${BGreen}[+] Exactly one device found: $DEVICE_ID${Off}"
+  else
+    # If you want to auto-pick the first device, remove this select menu:
+    echo -e "${BYellow}[!] Multiple online devices detected. Please select one:${Off}"
+    select chosen_device in $devices_list; do
+      if [ -n "$chosen_device" ]; then
+        DEVICE_ID="$chosen_device"
+        echo -e "${BGreen}[+] Using device: $DEVICE_ID${Off}"
+        break
+      else
+        echo -e "${BRed}Invalid selection.${Off}"
+      fi
+    done
+  fi
 }
 
 ###############################################################################
@@ -131,7 +154,7 @@ get_device_info(){
 	local device_model device_manufacturer device_serial device_name
 	local device_build_id device_build_fingerprint
 
-	sdk_version=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+	sdk_version=$(adb -s "$DEVICE_ID" shell getprop ro.build.version.sdk | tr -d '\r')
 	code_name=""
 
 	case $sdk_version in
@@ -151,15 +174,15 @@ get_device_info(){
 		*)       code_name="Unknown";;
 	esac
 
-	android_version=$(adb shell getprop ro.build.version.release | tr -d '\r')
-	android_codename=$(adb shell getprop ro.build.version.codename | tr -d '\r')
+	android_version=$(adb -s "$DEVICE_ID" shell getprop ro.build.version.release | tr -d '\r')
+	android_codename=$(adb -s "$DEVICE_ID" shell getprop ro.build.version.codename | tr -d '\r')
 
-	device_model=$(adb shell getprop ro.product.model | tr -d '\r')
-	device_manufacturer=$(adb shell getprop ro.product.manufacturer | tr -d '\r')
-	device_serial=$(adb get-serialno | tr -d '\r')
-	device_name=$(adb shell getprop ro.product.name | tr -d '\r')
-	device_build_id=$(adb shell getprop ro.build.id | tr -d '\r')
-	device_build_fingerprint=$(adb shell getprop ro.build.fingerprint | tr -d '\r')
+	device_model=$(adb -s "$DEVICE_ID" shell getprop ro.product.model | tr -d '\r')
+	device_manufacturer=$(adb -s "$DEVICE_ID" shell getprop ro.product.manufacturer | tr -d '\r')
+	device_serial=$(adb -s "$DEVICE_ID" get-serialno | tr -d '\r')
+	device_name=$(adb -s "$DEVICE_ID" shell getprop ro.product.name | tr -d '\r')
+	device_build_id=$(adb -s "$DEVICE_ID" shell getprop ro.build.id | tr -d '\r')
+	device_build_fingerprint=$(adb -s "$DEVICE_ID" shell getprop ro.build.fingerprint | tr -d '\r')
 
 	echo -e "Device model: ${Yellow}$device_model${Off}"
 	echo -e "Device manufacturer: ${Yellow}$device_manufacturer${Off}"
@@ -172,33 +195,74 @@ get_device_info(){
 	echo -e "Android Version: ${Yellow}${android_version} (${android_codename})${Off}"
 }
 
+################################################################################
+##  check_rooted
+################################################################################
+#check_rooted(){
+#	local root_status
+#	root_status=$(adb -s "$DEVICE_ID" shell id)
+#
+#	if [[ $root_status == *"uid=0"* ]]; then
+#		adb_root_check="${BGreen}Rooted${Off}"
+#	else
+#		adb_root_check="${BRed}Not Rooted${Off}"
+#	fi
+#
+#	echo -ne "Device root status: $adb_root_check "
+#
+#	if adb -s "$DEVICE_ID" shell -t su -c pm list packages &> /dev/null; then
+#		echo -e "${BWhite}successfully listed packages with root${Off}"
+#
+#	 # 2) If that fails, try normal (non-su) pm list packages
+#	elif adb -s "$DEVICE_ID" shell "pm list packages" &>/dev/null; then
+#	    echo -e "${BYellow}[!] 'su' not available, but listed packages normally.${Off}"
+#
+#
+#	else
+#		echo -e "${BRed}Cannot list packages with root${Off}"
+#	fi
+#}
 ###############################################################################
-#  check_rooted
+#  check_rooted - Distinguishes “already root (uid=0)” vs. “needs su” vs. “unrooted”
 ###############################################################################
 check_rooted(){
-	local root_status
-	root_status=$(adb shell id)
+  local root_status
+  root_status=$(adb -s "$DEVICE_ID" shell id 2>/dev/null)
 
-	if [[ $root_status == *"uid=0"* ]]; then
-		adb_root_check="${BGreen}Rooted${Off}"
-	else
-		adb_root_check="${BRed}Not Rooted${Off}"
-	fi
+  # Check if ADB shell is already running as root
+  if [[ $root_status == *"uid=0"* ]]; then
+    echo -ne "Device root status: ${BGreen}Rooted${Off} "
+    # In this case, we likely don't need su at all
+    if adb -s "$DEVICE_ID" shell "pm list packages" &>/dev/null; then
+      echo -e "- successfully listed packages without 'su' (already root)."
+    else
+      echo -e "- unable to list packages with normal shell. Something else is wrong."
+    fi
 
-	echo -ne "Device root status: $adb_root_check "
+  else
+    # ADB shell is not root (uid != 0)
+    echo -ne "Device root status: ${BRed}Not Rooted${Off} "
 
-	if adb shell -t su -c pm list packages &> /dev/null; then
-		echo -e "${BWhite}successfully listed packages with root${Off}"
-	else
-		echo -e "${BRed}Cannot list packages with root${Off}"
-	fi
+    # Try listing packages with su -c
+    if adb -s "$DEVICE_ID" shell -t su -c "pm list packages" &>/dev/null; then
+      echo -e "${BWhite}successfully listed packages with 'su'${Off}"
+
+    # If su didn't work, try normal pm list packages
+    elif adb -s "$DEVICE_ID" shell "pm list packages" &>/dev/null; then
+      echo -e "${BYellow}[!] 'su' not used or not needed, but listed packages normally (device is not running as root).${Off}"
+
+    else
+      echo -e "${BRed}Cannot list packages either with or without 'su'.${Off}"
+    fi
+  fi
 }
+
 
 ###############################################################################
 #  pull_all_certs
 ###############################################################################
 pull_all_certs(){
-	if ! adb pull "/system/etc/security/cacerts/" ./cacerts &> /dev/null; then
+	if ! adb -s "$DEVICE_ID" pull "/system/etc/security/cacerts/" ./cacerts &> /dev/null; then
 		echo -e "${BRed}[-] Unable to extract System CAs from device.${Off}"
 	else
 		echo -e "${BGreen}[+]${Off} Successfully extracted System CAs to \"./cacerts\"."
@@ -207,34 +271,32 @@ pull_all_certs(){
 
 ###############################################################################
 #  enable_genymotion_root
-#  (Sets persist.sys.root_access=3, restarts adbd as root)
 ###############################################################################
 enable_genymotion_root(){
 	echo -e "${BYellow}[*] Attempting to enable full root on Genymotion (persist.sys.root_access=3)...${Off}"
-	adb root
+	adb -s "$DEVICE_ID" root
 	sleep 2
-	adb wait-for-device
+	adb -s "$DEVICE_ID" wait-for-device
 
-	adb shell setprop persist.sys.root_access 3
+	adb -s "$DEVICE_ID" shell setprop persist.sys.root_access 3
 	sleep 1
 
-	adb root
+	adb -s "$DEVICE_ID" root
 	sleep 2
-	adb wait-for-device
+	adb -s "$DEVICE_ID" wait-for-device
 	echo -e "${BGreen}[+]${Off} Genymotion root access enabled (if supported)."
 }
 
 ###############################################################################
 #  direct_mount_and_copy
-#  (Tries to remount / or /system as rw, then move certificate)
 ###############################################################################
 direct_mount_and_copy(){
 	local cert_name="$1"
 
 	echo -e "${BYellow}[*] Attempting direct remount of '/' or '/system'...${Off}"
-	if adb shell su -c "mount -o rw,remount /" &>/dev/null; then
+	if adb -s "$DEVICE_ID" shell su -c "mount -o rw,remount /" &>/dev/null; then
 		echo -e "${BGreen}[+]${Off} Remounted '/' read-write."
-	elif adb shell su -c "mount -o rw,remount /system" &>/dev/null; then
+	elif adb -s "$DEVICE_ID" shell su -c "mount -o rw,remount /system" &>/dev/null; then
 		echo -e "${BGreen}[+]${Off} Remounted '/system' read-write."
 	else
 		echo -e "${BRed}[-] Failed to remount system partition read-write.${Off}"
@@ -242,10 +304,10 @@ direct_mount_and_copy(){
 	fi
 
 	# Move from /sdcard/${cert_name} to /system/etc/security/cacerts/${cert_name}
-	if adb shell su -c "mv /sdcard/${cert_name} /system/etc/security/cacerts/${cert_name}" &>/dev/null; then
-		adb shell su -c "chmod 644 /system/etc/security/cacerts/${cert_name}"
-		adb shell su -c "chown root:root /system/etc/security/cacerts/${cert_name}"
-		adb shell su -c "chcon u:object_r:system_file:s0 /system/etc/security/cacerts/${cert_name}"
+	if adb -s "$DEVICE_ID" shell su -c "mv /sdcard/${cert_name} /system/etc/security/cacerts/${cert_name}" &>/dev/null; then
+		adb -s "$DEVICE_ID" shell su -c "chmod 644 /system/etc/security/cacerts/${cert_name}"
+		adb -s "$DEVICE_ID" shell su -c "chown root:root /system/etc/security/cacerts/${cert_name}"
+		adb -s "$DEVICE_ID" shell su -c "chcon u:object_r:system_file:s0 /system/etc/security/cacerts/${cert_name}"
 		echo -e "${BGreen}[+]${Off} Certificate moved to system store with direct remount."
 		return 0
 	else
@@ -256,8 +318,6 @@ direct_mount_and_copy(){
 
 ###############################################################################
 #  push_certificate
-#  - converts local cacert.der -> PEM -> <hash>.0
-#  - tries direct_mount_and_copy; if fails, uses tmpfs fallback
 ###############################################################################
 push_certificate() {
 	local DER_FILE="cacert.der"
@@ -280,7 +340,7 @@ push_certificate() {
 
 	local CERT_NAME="$HASH.0"
 	echo -e "${BGreen}[+]${Off} Pushing certificate $CERT_NAME to /sdcard/$CERT_NAME"
-	if ! adb push "$CERT_NAME" "/sdcard/$CERT_NAME" &>/dev/null; then
+	if ! adb -s "$DEVICE_ID" push "$CERT_NAME" "/sdcard/$CERT_NAME" &>/dev/null; then
 		echo -e "${BRed}[-] Failed to push $CERT_NAME to device /sdcard.${Off}"
 		return 1
 	fi
@@ -291,7 +351,7 @@ push_certificate() {
 	else
 		# If direct method fails, use the tmpfs fallback
 		echo -e "${BYellow}[!] Falling back to tmpfs trick...${Off}"
-		if adb shell -t su -c "set -e; \
+		if adb -s "$DEVICE_ID" shell -t su -c "set -e; \
 			mkdir -m 700 /data/local/tmp/htk-ca-copy; \
 			cp /system/etc/security/cacerts/* /data/local/tmp/htk-ca-copy/; \
 			mount -t tmpfs tmpfs /system/etc/security/cacerts; \
@@ -311,9 +371,9 @@ push_certificate() {
 
 	# Optional: reboot so the system picks up the new CA
 	echo -e "${BYellow}[*] Rebooting the device for changes to take effect...${Off}"
-	adb shell reboot
+	adb -s "$DEVICE_ID" shell reboot
 	sleep 5
-	adb wait-for-device
+	adb -s "$DEVICE_ID" wait-for-device
 	echo -e "${BGreen}[+]${BYellow} Certificate successfully installed!${Off}"
 	return 0
 }
@@ -327,7 +387,7 @@ check_burp_cert(){
 	echo ""
 
 	# Attempt to pull the usual Burp cert from system
-	if adb pull "/system/etc/security/cacerts/9a5ba575.0" . &> /dev/null; then
+	if adb -s "$DEVICE_ID" pull "/system/etc/security/cacerts/9a5ba575.0" . &> /dev/null; then
 		echo -e "${BGreen}[+]${Off} Found Burp Suite System CA as \"./9a5ba575.0\""
 	fi
 
@@ -415,7 +475,12 @@ check_burp_cert(){
 ###############################################################################
 #  Main
 ###############################################################################
-if check_adb_installed && check_device_connected; then
+if check_adb_installed; then
+	# Instead of checking if ANY device is connected, let's pick specifically
+	# the one we want from among online devices.
+	select_device_or_fail
+
+	# Now we can safely run all commands using $DEVICE_ID
 	get_device_info
 	check_rooted
 
@@ -443,3 +508,4 @@ if check_adb_installed && check_device_connected; then
 		esac
 	done
 fi
+
