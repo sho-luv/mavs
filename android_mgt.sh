@@ -306,12 +306,12 @@ pull_all_certs() {
 ###############################################################################
 enable_genymotion_root() {
     echo -e "${BYellow}[*] Attempting to enable full root on Genymotion (persist.sys.root_access=3)...${Off}"
-    if  adb -s "$DEVICE_ID" root               && \
-        adb -s "$DEVICE_ID" wait-for-device    && \
-        adb -s "$DEVICE_ID" shell setprop persist.sys.root_access 3 && \
-        adb -s "$DEVICE_ID" root               && \
+    if  adb -s "$DEVICE_ID" root  &>/dev/null && \
+        adb -s "$DEVICE_ID" wait-for-device    &>/dev/null && \
+        adb -s "$DEVICE_ID" shell setprop persist.sys.root_access 3 &>/dev/null && \
+        adb -s "$DEVICE_ID" root               &>/dev/null && \
         adb -s "$DEVICE_ID" wait-for-device; then
-        echo -e "${BGreen}[+]${Off} Genymotion root access enabled (if supported)."
+        #echo -e "${BGreen}[+]${Off} Genymotion root access enabled Yay!"
         return 0
     else
         return 1
@@ -667,14 +667,14 @@ set_proxy() {
         # Display current proxy
         local current_proxy
         current_proxy=$(adb -s "$DEVICE_ID" shell settings get global http_proxy 2>/dev/null)
-        if [[ -z "$current_proxy" || "$current_proxy" == "null" ]]; then
+        if [[ -z "$current_proxy" || "$current_proxy" == "null" || "$current_proxy" == ":0" ]]; then
             echo -e "${BYellow}[*] No proxy is currently set on the device.${Off}"
         else
             echo -e "${BGreen}[+] Current proxy setting: $current_proxy${Off}"
         fi
     elif [[ "$proxy" == "remove" ]]; then
         echo -e "${BYellow}[*] Removing proxy settings from the device...${Off}"
-        adb -s "$DEVICE_ID" shell settings put global http_proxy "null"
+        adb -s "$DEVICE_ID" shell settings put global http_proxy :0
         echo -e "${BGreen}[+] Proxy settings removed.${Off}"
     elif [[ "$proxy" == "auto" ]]; then
         # Auto-detect IP / Port
@@ -696,8 +696,34 @@ if check_adb_installed; then
     select_device_or_fail
     get_device_info
 
-    # Print root status
-    check_rooted true
+    # Check root status
+    # Check if device is rooted
+    if ! check_rooted true; then        
+        # Get device manufacturer
+        # device_manufacturer=$(adb -s "$DEVICE_ID" shell getprop ro.product.manufacturer | tr -d '\r')
+
+        # # Check if the manufacturer is Genymobile
+        # if [[ "$device_manufacturer" == "Genymobile" ]]; then
+        #     # Prompt to enable root if the manufacturer is Genymobile
+        #     read -p "$(echo -e "${BGreen}[+]${Off} Identified Genymobile device would you like to root the device? [Y/n] ")" REPLY
+        #     if [[ -z "$REPLY" || "$REPLY" =~ ^[Yy]$ ]]; then
+        #         # Call a function to root the device or enable root access
+        #         #echo -e "${BYellow}[*] Attempting to root the device...${Off}"
+        #         if enable_genymotion_root; then
+        #             echo -e "${BGreen}[+] Device rooted successfully.${Off}"
+        #         else
+        #             echo -e "${BRed}[-] Failed to root the device.${Off}"
+        #         fi
+        #     else
+        #         echo -e "${BYellow}[+]${Off} Skipping root operation.${Off}"
+        #     fi
+        # else
+        #     echo -e "${BRed}[-] Device is not rooted, and it is not a Genymobile device. Skipping root operation.${Off}"
+        # fi
+        echo ""
+    fi
+
+
 
     # Now parse the rest of the command-line arguments
     while [[ "$#" -gt 0 ]]; do
