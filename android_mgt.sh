@@ -107,6 +107,11 @@ usage() {
     echo
     exit 1
 }
+# If -h or --help is used, print usage and exit immediately
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    usage
+    exit 0
+fi
 
 ###############################################################################
 #  Print Missing DER Instructions
@@ -788,9 +793,6 @@ if check_adb_installed; then
             -d|--delete)
                 delete_burp_cert
                 shift
-                ;;
-            -h|--help)
-                usage
                 ;;
             *)
                 echo -e "${BRed}Unknown option: $1${Off}"
