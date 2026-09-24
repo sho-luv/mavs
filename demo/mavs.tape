@@ -17,7 +17,7 @@ Type "clear" Enter
 Show
 
 Sleep 700ms
-Type "./mavs.sh -F -f magisk.apk -v -e | head -n 47"
+Type "./mavs.sh -F -f magisk.apk -v -e -c | head -n 47"
 Sleep 800ms
 Enter
 Sleep 4s

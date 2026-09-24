@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Annotated
 
@@ -10,6 +11,18 @@ import typer
 from mavs_scan.engine import scan as run_scan
 from mavs_scan.model import ScanReport
 from mavs_scan.report import render
+
+
+def _resolve_color(flag: bool | None) -> bool | None:
+    """Explicit --color/--no-color wins; else honor NO_COLOR/FORCE_COLOR; else auto (isatty)."""
+    if flag is not None:
+        return flag
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("FORCE_COLOR"):
+        return True
+    return None
+
 
 app = typer.Typer(
     add_completion=False,
@@ -34,6 +47,10 @@ def scan(  # noqa: PLR0913
         bool, typer.Option("--exploit", "-e", help="Show exploitation guidance")
     ] = False,
     json_output: Annotated[bool, typer.Option("--json", "-j", help="Emit the JSON report")] = False,
+    color: Annotated[
+        bool | None,
+        typer.Option("--color/--no-color", help="Force ANSI color on/off (default: auto by TTY)"),
+    ] = None,
     skip_managed_keys: Annotated[
         bool, typer.Option("--skip-managed-keys", help="Skip the slow Xamarin/.NET key scan")
     ] = False,
@@ -48,7 +65,7 @@ def scan(  # noqa: PLR0913
     if json_output:
         typer.echo(report.model_dump_json(indent=2))
     else:
-        render(report, verbose=verbose, exploit=exploit)
+        render(report, verbose=verbose, exploit=exploit, color=_resolve_color(color))
     if web:
         from mavs_scan.web.server import serve  # noqa: PLC0415
 

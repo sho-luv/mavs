@@ -48,16 +48,17 @@ Usage: $(basename "$0") [OPTIONS]
   -k 		Managed authentication keys only (Xamarin/.NET), legacy fast mode
   -w 		Serve the result in a local web interface after scanning
   -F 		Fast: skip the slow Xamarin/.NET managed-key inspection
+  -c 		Force ANSI color even when piped (e.g. into less -R or head)
   -p <port>	Web interface port (default 8000, implies -w)
   -h 		Show this help
 "
 }
 
-APK=""; VERBOSE=""; EXPLOIT=""; JSON=""; KEYS_ONLY=""; WEB=""; FAST=""; PORT=""
+APK=""; VERBOSE=""; EXPLOIT=""; JSON=""; KEYS_ONLY=""; WEB=""; FAST=""; PORT=""; COLOR=""
 
 if [ $# -eq 0 ]; then usage >&2; exit 0; fi
 
-while getopts "hf:vejkwFp:" option; do
+while getopts "hf:vejkwFcp:" option; do
   case ${option} in
     h) usage; exit 0 ;;
     f) APK="$OPTARG" ;;
@@ -67,6 +68,7 @@ while getopts "hf:vejkwFp:" option; do
     k) KEYS_ONLY=1 ;;
     w) WEB=1 ;;
     F) FAST=1 ;;
+    c) COLOR=1 ;;
     p) PORT="$OPTARG"; WEB=1 ;;
     *) echo "Invalid option" >&2; exit 1 ;;
   esac
@@ -97,6 +99,7 @@ scan_args=(scan -f "$APK")
 [ -n "$EXPLOIT" ] && scan_args+=(-e)
 [ -n "$JSON" ] && scan_args+=(-j)
 [ -n "$FAST" ] && scan_args+=(--skip-managed-keys)
+[ -n "$COLOR" ] && scan_args+=(--color)
 [ -n "$WEB" ] && scan_args+=(--web)
 [ -n "$PORT" ] && scan_args+=(--port "$PORT")
 

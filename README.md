@@ -79,6 +79,7 @@ Usage: mavs.sh [OPTIONS]
   -k 		Managed authentication keys only (Xamarin/.NET), legacy fast mode
   -w 		Serve the result in a local web interface after scanning
   -F 		Fast: skip the slow Xamarin/.NET managed-key inspection
+  -c 		Force ANSI color even when piped (e.g. into less -R or head)
   -p <port>	Web interface port (default 8000, implies -w)
   -h 		Show this help
 
