@@ -1,0 +1,69 @@
+[project]
+name = "mavs-managed-keys"
+version = "0.1.0"
+description = "Managed authentication-key inspection for MAVS"
+requires-python = ">=3.12"
+dependencies = [
+  "dnfile==0.18.0",
+  "dncil==1.0.2",
+  "lz4>=4.4,<5",
+  "pydantic>=2.12,<3",
+  "typer>=0.16,<1",
+  "apkinspector>=1.3,<2",
+  "asn1crypto>=1.5,<2",
+  "defusedxml>=0.7,<1",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.12,<1", "basedpyright>=1.31,<2"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = ["--strict-config", "--strict-markers"]
+
+[tool.basedpyright]
+typeCheckingMode = "all"
+pythonVersion = "3.12"
+include = ["mavs_keys", "mavs_scan", "tests"]
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownArgumentType = false
+reportAny = false
+reportExplicitAny = false
+reportMissingParameterType = false
+reportUnknownParameterType = false
+reportUnknownLambdaType = false
+reportImplicitStringConcatenation = false
+reportUnusedCallResult = false
+reportImplicitOverride = false
+reportUnannotatedClassAttribute = false
+reportPrivateUsage = false
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["COM812", "D203", "D213", "CPY001", "TRY003", "EM101", "EM102"]
+
+[tool.ruff.lint.per-file-ignores]
+"mavs_keys/scanner.py" = ["TRY301"]
+"tests/**/*.py" = ["S101", "D", "PLR2004", "S603", "INP001", "FBT001", "TC001", "TC003", "N814", "N817", "E501", "SLF001", "S310", "PLR0915", "ANN001", "ANN201", "ANN202"]
+# Static parsers use format-defined magic offsets; internal render/report helpers
+# take boolean flags; type-only imports are safe under future annotations.
+"mavs_scan/**/*.py" = ["PLR2004", "TC001", "TC002", "TC003", "FBT001", "FBT002", "FBT003", "N814"]
+"mavs_scan/report.py" = ["ANN001", "ANN202"]
+"mavs_scan/web/render.py" = ["ANN001", "E501"]
+"mavs_scan/web/server.py" = ["S104"]
+"mavs_scan/data/*.py" = ["E501"]
+"mavs_scan/guidance.py" = ["E501"]
+"mavs_scan/cli.py" = ["E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

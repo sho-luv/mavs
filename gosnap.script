@@ -1,0 +1,243 @@
+Script started on Tue Sep 22 14:54:32 2026
+[0m[38;5;244m[49m[39m[27m[24m[K
+
+[2A7[0m[49m[39m[38;5;244m╭─[0m[38;5;244m[49m[37m[0m[37m[47m[38;5;232m [0m[38;5;232m[47m[47m[38;5;232m [0m[38;5;232m[47m[44m[37m[0m[37m[44m[44m[38;5;254m  [1m[38;5;254m[44m[38;5;255m~[0m[38;5;255m[44m[44m[38;5;254m/home/projects/mine/karr/[1m[38;5;254m[44m[38;5;255mmavs[0m[38;5;255m[44m[44m[38;5;254m[0m[38;5;254m[44m[44m[38;5;254m [0m[38;5;254m[44m[49m[34m[0m[34m[49m[39m                                                                                           [0m[49m[30m[0m[30m[40m[32m [0m[32m[40m[40m[32m✔[0m[32m[40m[40m[32m [0m[32m[40m[40m[32m[37m[0m[37m[40m[47m[30m 02:54:32 PM[0m[30m[47m[47m[30m [0m[30m[47m[47m[30m [49m[37m[0m[37m[47m[30m[0m[30m[47m[49m[39m[38;5;244m─╮
+[38;5;244m╰─[0m[38;5;244m[49m[39m[0m[49m[39m [0m[49m[39m                                                                                                                                                       [0m[38;5;244m[49m[39m[38;5;244m─╯[0m[38;5;244m[49m[39m[27m[24m[3C[?2004h^[[200~./mavs.sh -f /Users/sho_luv/work/assessments/gosnap-rover/gosnap-us-release-arm64-202609161.apk -v -e^[[201~[?25l8[0m[49m[39m[27m[24m[J]2;sho_luv@USMAC-H3X7FYQVTP:~/home/projects/mine/karr/mavs]1;..ine/karr/mavs]7;file://USMAC-H3X7FYQVTP.local/Users/sho_luv/home/projects/mine/karr/mavs\[0m[38;5;254m[49m[39m[27m[24m[1m[7m%[27m[1m[0m                                                                                                                                                            [0m[49m[39m[27m[24m[K[0m[27m[24m[J[0m[38;5;244m[49m[39m
+[A[38;5;244m╭─[0m[38;5;244m[49m[37m[0m[37m[47m[38;5;232m [0m[38;5;232m[47m[47m[38;5;232m [0m[38;5;232m[47m[44m[37m[0m[37m[44m[44m[38;5;254m  [1m[38;5;254m[44m[38;5;255m~[0m[38;5;255m[44m[44m[38;5;254m/home/projects/mine/karr/[1m[38;5;254m[44m[38;5;255mmavs[0m[38;5;255m[44m[44m[38;5;254m[0m[38;5;254m[44m[44m[38;5;254m [0m[38;5;254m[44m[43m[34m[0m[34m[43m[43m[30m  [30m master [30m!2 [30m?11[0m[30m[43m[43m[30m [0m[30m[43m[49m[33m[0m[33m[49m[39m                                                                       [0m[49m[30m[0m[30m[40m[32m [0m[32m[40m[40m[32m✔[0m[32m[40m[40m[32m [0m[32m[40m[40m[32m[37m[0m[37m[40m[47m[30m 02:54:32 PM[0m[30m[47m[47m[30m [0m[30m[47m[47m[30m [49m[37m[0m[37m[47m[30m[0m[30m[47m[49m[39m[38;5;244m─╮
+[38;5;244m╰─[0m[38;5;244m[49m[39m[0m[49m[39m [0m[49m[39m[K[151C[0m[49m[39m[38;5;244m─╯[39m[153D[?1h=[?25h[?2004h[7m./mavs.sh -f /Users/sho_luv/work/assessments/gosnap-rover/gosnap-us-release-arm64-202609161.apk -v -e[27m[101D[27m.[27m/[27mm[27ma[27mv[27ms[27m.[27ms[27mh[27m [27m-[27mf[27m [27m/[27mU[27ms[27me[27mr[27ms[27m/[27ms[27mh[27mo[27m_[27ml[27mu[27mv[27m/[27mw[27mo[27mr[27mk[27m/[27ma[27ms[27ms[27me[27ms[27ms[27mm[27me[27mn[27mt[27ms[27m/[27mg[27mo[27ms[27mn[27ma[27mp[27m-[27mr[27mo[27mv[27me[27mr[27m/[27mg[27mo[27ms[27mn[27ma[27mp[27m-[27mu[27ms[27m-[27mr[27me[27ml[27me[27ma[27ms[27me[27m-[27ma[27mr[27mm[27m6[27m4[27m-[27m2[27m0[27m2[27m6[27m0[27m9[27m1[27m6[27m1[27m.[27ma[27mp[27mk[27m [27m-[27mv[27m [27m-[27me[?1l>[?25l[?2004l[A[0m[27m[24m[J[0m[49m[27m[24m[38;5;76m❯[0m[38;5;76m[49m[39m[27m[24m ./mavs.sh -f /Users/sho_luv/work/assessments/gosnap-rover/gosnap-us-release-arm64-202609161.apk -v -e[K[?25h
+]2;./mavs.sh -f  -v -e]1;./mavs.sh[1;37m
+                                   ╓
+                        ╕         ╒╣╕                     ╣╣╣─    ╦╣╣
+                ╓      ║╬         ╣╣╣      ╒             ╣╣╣─  ╒╣╣╩╙╣╬║╣
+                ╣╕     ╣╣        ╫╣ ╫╣     ╡  ╔         ╣╣╣   ╦╣╩   ║╣╬
+               ╣╣╣    ║╣╣╬      ╔╣╩  ╫╣╖  ╞╬  ╣╣       ╣╣╣   ╣╣╬    ╞╩
+             ╒╣╣╩╣╣╖ ╔╣╬╣╣╕    ╔╣╣╗╗╦╦╣╣╦╦╣╣  ╣╣╣     ╣╣╣     ╙╣╣╣╦╗╖
+            ╔╣╣╜  ╝╣╣╣╜ ╙╣╣═╩╜║╣╣╜     ╫╣╖     ╣╣╣  ╒╣╣╣          ╠╜╝╣╣╣╣╗╖
+          ╓╣╣╩           ╚╣╣ ╦╣╬        ╚╣╗     ╣╣╬╓╣╣╬      ╓╦╣╣╣╩      ╙╙╝╣╣╣╗╖
+        ╒╣╣╬╗╗╗           ╚╣╣╖           ╙╣╣╗   ╙╣╣╣╣╩    ╓╣╣╩╙ ║╣             ╙╣╣╣╖
+      ╓╣╣╝╜╙╙╙╙            ╚╣╣╖╦           ╙╝╣╗╖ ╫╣╣╬    ├╣╣╖    ╬           ╓╓╗╣╣╣╩
+                       ║╣╣╣╣╣╣╣╣╣╖           ╓╣╣╣ ╣╬      ╙╙╝╣╣╣╣╣╣╣╣╣╣╣╣╣╣╣╝╝╜╙╙
+                             └╙╙╨╝╝╝╝╝╝╝╝╝╨╜╜╙╙╙   ╣
+
+        Mobile Application Vulnerability Scanner | @sho_luv
+[0m
+ Target:       [1;37m/Users/sho_luv/work/assessments/gosnap-rover/gosnap-us-release-arm64-202609161.apk[0m
+ Type:         apk
+ SHA-256:      bfba55867ee4c3a21e63766c528b86362f27d469f60fda603a28d70ef9279ecb
+ Package:      [1;37mcom.projectrover.app[0m
+ Version:      0.1.0 (202609161)
+ SDK:          min 29 / target 34
+ Main activity:com.projectrover.app.MainActivity
+ Permissions:  22
+
+[4;37m Summary [0m
+ Risk score:   [1;33m100[0m/100  Grade: [1;33mF[0m
+ Findings:     22  ([1;31m3 high[0m  [0;33m7 medium[0m  [0;36m7 low[0m  [0;37m5 info[0m)
+
+[1;31m[HIGH][0m [1;37mCustom TrustManager may trust all certificates[0m  (MAVS-CODE-TRUSTALL)
+    A custom X509TrustManager is present. If checkServerTrusted is empty it trusts every certificate. Confirm the implementation validates the chain.
+    CWE-295 | MASVS-NETWORK-1
+    [4;37mEvidence:[0m
+      - [Ljavax/net/ssl/X509TrustManager;
+      - checkServerTrusted
+    [4;37mVerify:[0m Search decompiled code for: javax/net/ssl/X509TrustManager, checkServerTrusted
+    [1;33m[+] Exploit:[0m
+      Install any valid certificate on the device and attempt to capture application traffic. This can be done with a self-signed certificate generated by Burp Suite or Bettercap.
+      Install Cert iOS: https://t.ly/WgJ9
+      Install Cert Android: https://t.ly/MpIl
+      Install Cert Windows Mobile: https://t.ly/In0K
+
+[1;31m[HIGH][0m [1;37mDangerous permission: ACCESS_BACKGROUND_LOCATION[0m  (MAVS-PERM)
+    Location while backgrounded.
+    CWE-250 | MASVS-PLATFORM-1
+    [4;37mEvidence:[0m
+      - android.permission.ACCESS_BACKGROUND_LOCATION
+
+[1;31m[HIGH][0m [1;37mDangerous permission: REQUEST_INSTALL_PACKAGES[0m  (MAVS-PERM)
+    Prompt to install APKs; dropper capability.
+    CWE-250 | MASVS-PLATFORM-1
+    [4;37mEvidence:[0m
+      - android.permission.REQUEST_INSTALL_PACKAGES
+
+[0;33m[MEDIUM][0m [1;37mWeak block cipher mode (ECB)[0m  (MAVS-CODE-CRYPTO-ECB)
+    ECB mode leaks plaintext structure because identical blocks encrypt identically. Use an authenticated mode such as AES/GCM.
+    CWE-327 | MASVS-CRYPTO-1
+    [4;37mEvidence:[0m
+      - AES/ECB/NoPadding
+      - AES/ECB/NoPadding
+    [4;37mVerify:[0m Search decompiled code for: AES/ECB, /ECB/NoPadding
+
+[0;33m[MEDIUM][0m [1;37mApplication backups allowed[0m  (MAVS-MANIFEST-BACKUP)
+    android:allowBackup is not set to false, so app data can be extracted via adb backup without root.
+    CWE-530 | MASVS-STORAGE-2
+    [4;37mEvidence:[0m
+      - android:allowBackup="true"
+    [4;37mVerify:[0m Check for android:allowBackup in the manifest application tag.
+    [1;33m[+] Exploit:[0m
+      If backups are allowed it is possible to make a backup without rooting the device. Any user can make a backup and view files. adb creates the backup, then printf extracts it:
+      adb backup com.projectrover.app  -then-
+      ( printf "\x1f\x8b\x08\x00\x00\x00\x00\x00" ; tail -c +25 backup.ab ) | tar xfvz -
+
+[0;33m[MEDIUM][0m [1;37mDangerous permission: ACCESS_COARSE_LOCATION[0m  (MAVS-PERM)
+    Approximate location.
+    CWE-250 | MASVS-PLATFORM-1
+    [4;37mEvidence:[0m
+      - android.permission.ACCESS_COARSE_LOCATION
+
+[0;33m[MEDIUM][0m [1;37mDangerous permission: ACCESS_FINE_LOCATION[0m  (MAVS-PERM)
+    Precise GPS location.
+    CWE-250 | MASVS-PLATFORM-1
+    [4;37mEvidence:[0m
+      - android.permission.ACCESS_FINE_LOCATION
+
+[0;33m[MEDIUM][0m [1;37mDangerous permission: READ_EXTERNAL_STORAGE[0m  (MAVS-PERM)
+    Read shared external storage.
+    CWE-250 | MASVS-PLATFORM-1
+    [4;37mEvidence:[0m
+      - android.permission.READ_EXTERNAL_STORAGE
+
+[0;33m[MEDIUM][0m [1;37mDangerous permission: READ_PHONE_STATE[0m  (MAVS-PERM)
+    Read device and phone identifiers.
+    CWE-250 | MASVS-PLATFORM-1
+    [4;37mEvidence:[0m
+      - android.permission.READ_PHONE_STATE
+
+[0;33m[MEDIUM][0m [1;37mDangerous permission: WRITE_EXTERNAL_STORAGE[0m  (MAVS-PERM)
+    Write shared external storage; world-accessible data risk.
+    CWE-250 | MASVS-PLATFORM-1
+    [4;37mEvidence:[0m
+      - android.permission.WRITE_EXTERNAL_STORAGE
+
+[0;36m[LOW][0m [1;37mNo stack canary[0m  (MAVS-BIN-CANARY)
+    Libraries were built without stack canaries, easing stack overflow exploitation.
+    CWE-121 | MASVS-CODE-4
+    [4;37mEvidence:[0m
+      - lib/arm64-v8a/libc++_shared.so
+      - lib/arm64-v8a/libnpth_dl.so
+      - lib/arm64-v8a/libnpth_unw.so
+      - lib/arm64-v8a/libnpth_unwind.so
+      - lib/arm64-v8a/libshadowhook_nothing.so
+
+[0;36m[LOW][0m [1;37mSensitive data may be written to external storage[0m  (MAVS-CODE-EXTSTORAGE)
+    External storage is world-readable on older Android and shared. Confirm no secrets or PII are written there.
+    CWE-922 | MASVS-STORAGE-1
+    [4;37mEvidence:[0m
+      - getExternalStorageDirectory
+      - getExternalFilesDir
+      - getExternalCacheDir
+    [4;37mVerify:[0m Search decompiled code for: getExternalStorageDirectory, getExternalFilesDir, getExternalCacheDir
+
+[0;36m[LOW][0m [1;37mWeak hash function (MD5/SHA-1)[0m  (MAVS-CODE-HASH-WEAK)
+    MD5 and SHA-1 are collision-prone and unsuitable for integrity or signature use. Prefer SHA-256 or stronger.
+    CWE-327 | MASVS-CRYPTO-1
+    [4;37mEvidence:[0m
+      - STACK_MD5
+    [4;37mVerify:[0m Search decompiled code for: MD5
+
+[0;36m[LOW][0m [1;37mApplication logging present[0m  (MAVS-CODE-LOG)
+    Logging APIs are referenced. Logs can leak sensitive data and are readable with logcat on debuggable or older devices.
+    CWE-532 | MASVS-STORAGE-3
+    [4;37mEvidence:[0m
+      - Landroid/util/Log;
+      - Ljava/util/logging/Logger;
+    [4;37mVerify:[0m Search decompiled code for: Landroid/util/Log;, Ljava/util/logging/Logger;
+    [1;33m[+] Exploit:[0m
+      Logging can be examined with logcat. This traffic can be captured and examined while being captured. Examples:
+      adb logcat -v time | grep 'com.projectrover.app'
+      adb logcat -v time | grep -E "credit|passw|ssn|social"
+      adb logcat -v time > 'app.log'
+
+[0;36m[LOW][0m [1;37mInsecure pseudo-random generator[0m  (MAVS-CODE-RANDOM)
+    java.util.Random is predictable. Use java.security.SecureRandom for tokens, keys or IVs.
+    CWE-330 | MASVS-CRYPTO-1
+    [4;37mEvidence:[0m
+      - Ljava/util/Random;
+    [4;37mVerify:[0m Search decompiled code for: Ljava/util/Random;
+
+[0;36m[LOW][0m [1;37mRaw SQL query construction[0m  (MAVS-CODE-SQL)
+    Raw SQL is used. If queries interpolate untrusted input this is a SQL injection risk. Prefer parameterized queries.
+    CWE-89 | MASVS-CODE-4
+    [4;37mEvidence:[0m
+      - rawQueryWithFactory(...)
+      - execSQL
+    [4;37mVerify:[0m Search decompiled code for: rawQuery, execSQL
+
+[0;36m[LOW][0m [1;37mScreenshots and task snapshots allowed[0m  (MAVS-MANIFEST-SNAPSHOT)
+    No FLAG_SECURE and no excludeFromRecents were found, so the OS may capture snapshots of sensitive screens for the recents view.
+    CWE-200 | MASVS-PLATFORM-3
+    [4;37mEvidence:[0m
+      - FLAG_SECURE / excludeFromRecents not detected
+    [4;37mVerify:[0m Background the app on a sensitive screen and inspect the snapshot.
+    [1;33m[+] Exploit:[0m
+      Note: root access required to access snapshots.
+      Open the application to a screen with sensitive info, then switch to another app or the homescreen. A snapshot will have been created. Verify the image is not blank by accessing it:
+      adb shell "su -c 'cp -r /data/system/recent_images /sdcard/'"
+      adb pull /sdcard/recent_images
+      adb shell "su -c 'rm -r /sdcard/recent_images'"
+        or
+      adb shell "su -c 'cp -r /data/system_ce/0/snapshots /sdcard/'"
+      adb pull /sdcard/snapshots
+      adb shell "su -c 'rm -r /sdcard/snapshots'"
+      Newer versions of Android:
+      adb shell "su -c 'cp -rf /data/system_ce/0/snapshots /data/local/tmp/'"
+      chmod -R 777 "/data/local/tmp/snapshots"
+      adb pull "/data/local/tmp/snapshots"
+      adb shell "su -c 'rm -r /data/local/tmp/snapshots'"
+
+[0;37m[INFO][0m [1;37mClipboard access[0m  (MAVS-CODE-CLIPBOARD)
+    Clipboard is accessed. Sensitive values copied to the clipboard are readable by other apps.
+    CWE-200 | MASVS-STORAGE-2
+    [4;37mEvidence:[0m
+      - Landroid/content/ClipboardManager;
+    [4;37mVerify:[0m Search decompiled code for: Landroid/content/ClipboardManager;
+
+[0;37m[INFO][0m [1;37mAndroidKeyStore usage[0m  (MAVS-CODE-KEYSTORE)
+    The app uses the hardware-backed AndroidKeyStore. This is a good practice noted for context.
+    MASVS-CRYPTO-2
+    [4;37mEvidence:[0m
+      - AndroidKeyStore
+    [4;37mVerify:[0m Search decompiled code for: AndroidKeyStore
+
+[0;37m[INFO][0m [1;37mRoot detection strings[0m  (MAVS-CODE-ROOTCHECK)
+    The app appears to probe for root. This is a resilience control, not a vulnerability, and is easily bypassed.
+    MASVS-RESILIENCE-1
+    [4;37mEvidence:[0m
+      - /system/bin/su
+      - /system/xbin/su
+    [4;37mVerify:[0m Search decompiled code for: /system/bin/su, /system/xbin/su
+
+[0;37m[INFO][0m [1;37mInsecure device data storage (manual check)[0m  (MAVS-STORAGE-MANUAL)
+    Local data storage cannot be confirmed statically. Exercise the app, then pull and inspect its private data directory for sensitive values.
+    MASVS-STORAGE-1
+    [4;37mEvidence:[0m
+      - requires a device and manual testing
+    [4;37mVerify:[0m Enter identifiable test data, then inspect shared_prefs and databases.
+    [1;33m[+] Exploit:[0m
+      Enter fake but identifiable information into the application wherever possible (usernames, emails, phone, bank info). Then pull the app's private data and search it:
+      adb shell "su -c 'cp -rf /data/data/com.projectrover.app /data/local/tmp/ && chmod -R 777 /data/local/tmp/com.projectrover.app'" && adb pull /data/local/tmp/com.projectrover.app && adb shell "su -c 'rm -r /data/local/tmp/com.projectrover.app'"
+      Places to find sensitive data:
+        - Shared Preferences: ./com.projectrover.app/shared_prefs/
+        - SQLite Databases: ./com.projectrover.app/databases/
+        - Internal Storage / External Storage
+
+[0;37m[INFO][0m [1;37mCleartext traffic may be permitted[0m  (MAVS-MANIFEST-CLEARTEXT)
+    The app may allow unencrypted HTTP. Cleartext traffic can be sniffed or modified on the network path.
+    CWE-319 | MASVS-NETWORK-1
+    [4;37mEvidence:[0m
+      - not set; default-deny for targetSdk 34
+    [4;37mVerify:[0m Check usesCleartextTraffic and any network security config.
+    [1;33m[+] Exploit:[0m
+      If cleartext is allowed, it may be possible to sniff cleartext traffic.
+
+[4;37mCoverage notes:[0m
+  [error] network: analyzer failed: unpack requires a buffer of 20 bytes
+  [partial] managed-keys: 0 assemblies scanned; 1 not scanned (e.g. /Users/sho_luv/work/assessments/gosnap-rover/gosnap-us-release-arm64-202609161.apk: no supported managed assemblies found in APK/XAPK)
+
+Static findings record what is present in the package. They are not proof of runtime exploitability; verify each on a device.
+
+[1m[7m%[27m[1m[0m                                                                                                                                                             ]2;sho_luv@USMAC-H3X7FYQVTP:~/home/projects/mine/karr/mavs]1;..ine/karr/mavs]7;file://USMAC-H3X7FYQVTP.local/Users/sho_luv/home/projects/mine/karr/mavs\[0m[27m[24m[J[0m[38;5;244m[49m[39m
+
+[A[38;5;244m╭─[0m[38;5;244m[49m[37m[0m[37m[47m[38;5;232m [0m[38;5;232m[47m[47m[38;5;232m [0m[38;5;232m[47m[44m[37m[0m[37m[44m[44m[38;5;254m  [1m[38;5;254m[44m[38;5;255m~[0m[38;5;255m[44m[44m[38;5;254m/home/projects/mine/karr/[1m[38;5;254m[44m[38;5;255mmavs[0m[38;5;255m[44m[44m[38;5;254m[0m[38;5;254m[44m[44m[38;5;254m [0m[38;5;254m[44m[43m[34m[0m[34m[43m[43m[30m  [30m master [30m!2 [30m?11[0m[30m[43m[43m[30m [0m[30m[43m[49m[33m[0m[33m[49m[39m                                                                     [0m[49m[31m[0m[31m[41m[33m 2[0m[33m[41m[41m[33m ✘[0m[33m[41m[41m[33m [0m[33m[41m[41m[33m[37m[0m[37m[41m[47m[30m 02:54:36 PM[0m[30m[47m[47m[30m [0m[30m[47m[47m[30m [49m[37m[0m[37m[47m[30m[0m[30m[47m[49m[39m[38;5;244m─╮
+[38;5;244m╰─[0m[38;5;244m[49m[39m[0m[49m[39m [0m[49m[39m[K[151C[0m[49m[39m[38;5;244m─╯[39m[153D[?1h=[?2004heexit[?1l>[?25l[?2004l[A[A[0m[27m[24m[J[0m[49m[27m[24m[38;5;196m❯[0m[38;5;196m[49m[39m[27m[24m exit[K[?25h
+]2;exit]1;exit
+Script done on Tue Sep 22 14:54:38 2026
