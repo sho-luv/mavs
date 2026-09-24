@@ -26,6 +26,10 @@ and automation can drive it, with an optional zero-dependency web dashboard.
   - `-e` exploit = Show me how to exploit this so called broken thing, or how to manually confirm it. Commands are cut-and-paste ready.
   - `-j` json = Machine-readable report for AI tools and pipelines.
 
+<p align="center">
+  <img src="demo/mavs.gif" alt="MAVS scanning an APK: risk score, A-F grade, findings, and copy-paste exploit guidance" width="900">
+</p>
+
 ## Required Dependencies
 
 Only [uv](https://docs.astral.sh/uv/getting-started/installation/) and Python 3.12+.

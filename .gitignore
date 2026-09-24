@@ -4,3 +4,7 @@ __pycache__/
 .ruff_cache/
 tests/fixtures/bin/
 tests/fixtures/obj/
+
+# Never commit sample binaries
+*.apk
+*.xapk
