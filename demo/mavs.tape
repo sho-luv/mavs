@@ -20,4 +20,5 @@ Sleep 700ms
 Type "./mavs.sh -F -f magisk.apk -v -e -c | head -n 47"
 Sleep 800ms
 Enter
-Sleep 4s
+# Long hold so viewers can read the report before the loop restarts.
+Sleep 13s

@@ -27,7 +27,11 @@ and automation can drive it, with an optional zero-dependency web dashboard.
   - `-j` json = Machine-readable report for AI tools and pipelines.
 
 <p align="center">
-  <img src="demo/mavs.gif" alt="MAVS scanning an APK: risk score, A-F grade, findings, and copy-paste exploit guidance" width="900">
+  <a href="demo/mavs-report.png">
+    <img src="demo/mavs.gif" alt="MAVS scanning an APK: risk score, A-F grade, findings, and copy-paste exploit guidance" width="900">
+  </a>
+  <br>
+  <em><a href="demo/mavs-report.png">Click for the full report</a> — a still you can read at your own pace.</em>
 </p>
 
 ## Required Dependencies
